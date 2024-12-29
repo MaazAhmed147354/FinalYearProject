@@ -9,6 +9,19 @@ functions:
       - http:
           path: hello
           method: get
+          
+  loginUser:
+    handler: src/handlers/loginHandler.loginUser
+    timeout: 30
+    events:
+      - http:
+          path: loginUser
+          method: post
+          cors:
+            origin: "http://localhost:3001"
+            headers:
+              - Content-Type
+              - X-Custom-Header
 
 plugins:
   - serverless-offline
