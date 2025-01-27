@@ -52,7 +52,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Navbar */}
+      {/* Navbar
       <nav className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
@@ -67,10 +67,10 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-      </nav>
+      </nav> */}
 
       <div className="flex">
-        {/* Sidebar */}
+        {/* Sidebar
         <aside className="w-64 bg-white h-screen shadow-sm">
           <nav className="mt-8">
             <a
@@ -129,7 +129,7 @@ const Dashboard = () => {
               Settings
             </a>
           </nav>
-        </aside>
+        </aside> */}
 
         {/* Main Content */}
         <main className="flex-1 p-8">
