@@ -1,11 +1,11 @@
 const sequelize = require("../config/database");
 const Users = require("../models/employeesModel");
-const Roles = require("../models/rolesModel");
 const jwt = require("jsonwebtoken");
 const cookie = require("cookie");
+const bcrypt = require("bcrypt");
 
 const genJWTToken = (user) => {
-  return jwt.sign({ id: user.user_id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
     expiresIn: "12h",
   });
 };
@@ -13,13 +13,13 @@ const genJWTToken = (user) => {
 exports.loginUser = async (body) => {
   try {
     await sequelize.sync();
-    const { email } = body;
+    const { email, password } = body;
 
-    if (!email) {
+    if (!email || !password) {
       return {
         statusCode: 400,
         body: JSON.stringify({
-          message: "Email is required",
+          message: "Email and password are required",
         }),
       };
     }
@@ -27,21 +27,20 @@ exports.loginUser = async (body) => {
     let user = await Users.findOne({ where: { email } });
 
     if (user) {
-      const role = await Roles.findOne({ where: { role_id: user.role_id } });
-
-      if (!role) {
+      const passwordMatch = await bcrypt.compare(password, user.password_hash);
+      if (!passwordMatch) {
         return {
-          statusCode: 500,
+          statusCode: 401,
           body: JSON.stringify({
-            message: "Role not found for the user",
+            message: "Invalid password",
           }),
         };
       }
 
       let redirectUrl = "/employee";
-      if (role.role_id === 1) {
+      if (user.role === "HR") {
         redirectUrl = "/admin";
-      } else if (role.role_id === 2) {
+      } else if (user.role === "Department") {
         redirectUrl = "/manager";
       }
 
@@ -62,40 +61,10 @@ exports.loginUser = async (body) => {
         }),
       };
     } else {
-      const userRole = await Roles.findOne({
-        where: { role_name: "Employee" },
-      });
-
-      if (!userRole) {
-        return {
-          statusCode: 500,
-          body: JSON.stringify({
-            message: "Employee role not found in the Role table",
-          }),
-        };
-      }
-      const name = email.split("@")[0];
-
-      user = await Users.create({
-        name,
-        email,
-        role_id: userRole.role_id,
-      });
-
-      const token = genJWTToken(user);
       return {
-        statusCode: 201,
-        headers: {
-          "Set-Cookie": cookie.serialize("token", token, {
-            httpOnly: true,
-            secure: false, // Set to true in production
-            maxAge: 12 * 60 * 60, // 12 hours
-            path: "/",
-          }),
-        },
+        statusCode: 404,
         body: JSON.stringify({
-          message: "User created and logged in successfully!",
-          redirectUrl: "/employee",
+          message: "User not found",
         }),
       };
     }

@@ -1,4 +1,4 @@
-const loginController = require('./../contollers/loginController');
+const loginController = require('./../controllers/loginController');
 
 module.exports.loginUser = async (event) => {
     return await loginController.loginUser(event);
