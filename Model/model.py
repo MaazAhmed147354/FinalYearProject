@@ -814,6 +814,27 @@ class CVEvaluator:
         
         return scores
     
+    def _parse_duration(self, duration_str):
+        import re
+        from dateutil import parser
+        from datetime import datetime
+
+        try:
+            dates = re.findall(r'(\w+\s+\d{4}|\d{1,2}/\d{4})', duration_str)
+            if len(dates) == 2:
+                start = parser.parse(dates[0])
+                end = parser.parse(dates[1])
+            elif len(dates) == 1 and 'present' in duration_str.lower():
+                start = parser.parse(dates[0])
+                end = datetime.today()
+            else:
+                return 0
+
+            duration = (end.year - start.year) * 12 + (end.month - start.month)
+            return max(duration / 12, 0)
+        except Exception:
+            return 0
+
     # Add new evaluation methods for BPO operations industry
     def _evaluate_operations_management(self, cv_data):
         ops_terms = [
