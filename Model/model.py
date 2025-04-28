@@ -33,11 +33,6 @@ class CVEvaluationSystem:
                     'client_relations': 0.25,
                     'crisis_intervention': 0.20
                 },
-                'customer_service': {
-                    'customer_service': 0.40,
-                    'technical_skills': 0.20,
-                    'problem_solving': 0.15
-                },
                 'natural_resources': {
                     'field_experience': 0.35,
                     'technical_skills': 0.25,
