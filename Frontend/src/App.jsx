@@ -1,6 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
+import Login from "./pages/auth/Login"
+import Register from "./pages/auth/Register"
 import Dashboard from "./pages/dashboard/Dashboard";
 import EmailIntegration from "./pages/email/EmailIntegration";
 import CreateJob from "./pages/jobs/CreateJobs";
@@ -15,7 +17,9 @@ const App = () => {
       <MainLayout>
         <Routes>
           {/* Define routes for your pages */}
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/email-integration" element={<EmailIntegration />} />
           <Route path="/create-job" element={<CreateJob />} />
           <Route path="/manage-resumes" element={<ManageResumes />} />
