@@ -1,6 +1,7 @@
 import re
 from collections import defaultdict
 from datetime import datetime
+from dateutil import parser
 
 class CVEvaluationSystem:
     def __init__(self):
@@ -166,7 +167,7 @@ class CVEvaluationSystem:
             ' '.join([exp.get('description', '') for exp in cv_data.get('experience', [])]),
             ' '.join(cv_data.get('skills', []))
         ]).lower()
-        
+
         # Enhanced industry detection with new categories
         finance_keywords = {
             'financial': 2, 'accounting': 2, 'audit': 2, 'tax': 1.5, 
@@ -314,7 +315,7 @@ class CVEvaluationSystem:
         
         if criteria['required_skills']:
             missing = [s for s in criteria['required_skills'] 
-                      if s.lower() not in ' '.join(data.get('skills', [])).lower()]
+                    if s.lower() not in ' '.join(data.get('skills', [])).lower()]
             checks['required_skills'] = not missing
         
         if criteria['education_level']:
@@ -340,20 +341,107 @@ class CVEvaluationSystem:
                 scores.get('compliance_score', 0) >= 50
             )
         elif industry == 'media':
-            checks['industry_specific'] = scores.get('creativity_score', 0) >= 50
+            checks['industry_specific'] = (
+                scores.get('creativity_score', 0) >= 50 and
+                scores.get('project_management_score', 0) >= 40
+            )
         elif industry == 'hospitality':
-            checks['industry_specific'] = scores.get('customer_service_score', 0) >= 70
+            checks['industry_specific'] = (
+                scores.get('customer_service_score', 0) >= 70 and
+                scores.get('operations_score', 0) >= 50
+            )
         elif industry == 'social_services':
             checks['industry_specific'] = (
                 scores.get('case_management_score', 0) >= 60 and
                 scores.get('crisis_intervention_score', 0) >= 50
             )
         elif industry == 'customer_service':
-            checks['industry_specific'] = scores.get('customer_service_score', 0) >= 65
+            checks['industry_specific'] = (
+                scores.get('customer_service_score', 0) >= 65 and
+                scores.get('problem_solving_score', 0) >= 50
+            )
         elif industry == 'natural_resources':
             checks['industry_specific'] = (
                 scores.get('field_experience_score', 0) >= 70 and
                 scores.get('regulatory_knowledge_score', 0) >= 60
+            )
+        elif industry == 'retail_fashion':
+            checks['industry_specific'] = (
+                scores.get('sales_performance_score', 0) >= 60 and
+                scores.get('team_leadership_score', 0) >= 50 and
+                scores.get('business_development_score', 0) >= 40
+            )
+        elif industry == 'beauty_cosmetics':
+            checks['industry_specific'] = (
+                scores.get('artistry_skills_score', 0) >= 60 and
+                scores.get('product_knowledge_score', 0) >= 50 and
+                scores.get('creativity_score', 0) >= 40
+            )
+        elif industry == 'hospitality_food':
+            checks['industry_specific'] = (
+                scores.get('customer_service_score', 0) >= 70 and
+                scores.get('food_safety_score', 0) >= 60 and
+                scores.get('pos_systems_score', 0) >= 40
+            )
+        elif industry == 'arts_education':
+            checks['industry_specific'] = (
+                scores.get('curriculum_development_score', 0) >= 60 and
+                scores.get('teaching_experience_score', 0) >= 50 and
+                scores.get('artistic_skills_score', 0) >= 40
+            )
+        elif industry == 'it_architecture':
+            checks['industry_specific'] = (
+                scores.get('technical_skills_score', 0) >= 70 and
+                scores.get('project_management_score', 0) >= 50 and
+                scores.get('solution_design_score', 0) >= 40
+            )
+        elif industry == 'education_administration':
+            checks['industry_specific'] = (
+                scores.get('leadership_score', 0) >= 70 and
+                scores.get('policy_implementation_score', 0) >= 50 and
+                scores.get('budget_management_score', 0) >= 40
+            )
+        elif industry == 'military_aviation':
+            checks['industry_specific'] = (
+                scores.get('technical_skills_score', 0) >= 70 and
+                scores.get('leadership_score', 0) >= 60 and
+                scores.get('safety_compliance_score', 0) >= 50
+            )
+        elif industry == 'entry_level_service':
+            checks['industry_specific'] = (
+                scores.get('customer_service_score', 0) >= 65 and
+                scores.get('teamwork_score', 0) >= 50 and
+                scores.get('multitasking_score', 0) >= 40
+            )
+        elif industry == 'financial_services':
+            checks['industry_specific'] = (
+                scores.get('financial_analysis_score', 0) >= 70 and
+                scores.get('client_management_score', 0) >= 50 and
+                scores.get('regulatory_compliance_score', 0) >= 40
+            )
+        elif industry == 'entry_level_finance':
+            checks['industry_specific'] = (
+                scores.get('financial_analysis_score', 0) >= 60 and
+                scores.get('academic_achievement_score', 0) >= 50 and
+                scores.get('technical_skills_score', 0) >= 40
+            )
+        elif industry == 'bpo_operations':
+            checks['industry_specific'] = (
+                scores.get('operations_management_score', 0) >= 70 and
+                scores.get('team_leadership_score', 0) >= 50 and
+                scores.get('performance_metrics_score', 0) >= 40
+            )
+        elif industry == 'customer_service':
+            checks['industry_specific'] = (
+                scores.get('customer_relations_score', 0) >= 70 and
+                scores.get('problem_solving_score', 0) >= 50 and
+                scores.get('technical_skills_score', 0) >= 40
+            )
+        else:  # general
+            checks['industry_specific'] = (
+                scores.get('experience_quality', 0) >= 50 and
+                scores.get('education_quality', 0) >= 40 and
+                scores.get('skills_relevance', 0) >= 40
             )
         
         return checks
@@ -414,7 +502,7 @@ class CVEvaluationSystem:
                 return delta.days // 30  # Approximate months
             except:
                 pass
-        
+
         # Try to extract years
         years_match = re.search(r'(\d+)\s*year', duration_str, re.IGNORECASE)
         if years_match:
@@ -463,6 +551,18 @@ class CVEvaluationSystem:
             'social_services': (80, 65, 50),
             'customer_service': (75, 60, 45),
             'natural_resources': (80, 65, 50),
+            'retail_fashion': (80, 65, 50),
+            'beauty_cosmetics': (80, 65, 50),
+            'hospitality_food': (75, 60, 45),
+            'arts_education': (80, 65, 50),
+            'it_architecture': (85, 70, 55),
+            'education_administration': (80, 65, 50),
+            'military_aviation': (85, 70, 55),
+            'entry_level_service': (75, 60, 45),
+            'financial_services': (85, 70, 55),
+            'entry_level_finance': (80, 65, 50),
+            'bpo_operations': (80, 65, 50),
+            'customer_service': (75, 60, 45),
             'general': (80, 65, 50)
         }
         
@@ -502,8 +602,7 @@ class CVEvaluationSystem:
             'common_strengths': top_strengths,
             'common_weaknesses': top_weaknesses
         }
-
-
+    
 class CVEvaluator:
     def __init__(self, criteria, industry):
         self.criteria = criteria
@@ -648,7 +747,6 @@ class CVEvaluator:
             'technical_skills_score': 0.05
         }
         
-        # Adjust weights based on industry
         if self.industry == 'finance':
             weights.update({
                 'experience_quality': 0.35,
@@ -682,8 +780,95 @@ class CVEvaluator:
                 'field_experience_score': 0.35,
                 'technical_skills_score': 0.25,
                 'regulatory_knowledge_score': 0.20,
-                'education_quality': 0.20,  # Higher weight for natural resources
-                'experience_quality': 0.25  # Slightly reduced from general
+                'education_quality': 0.20,
+                'experience_quality': 0.25
+            })
+        elif self.industry == 'retail_fashion':
+            weights.update({
+                'sales_performance_score': 0.30,
+                'team_leadership_score': 0.25,
+                'customer_service_score': 0.25,
+                'business_development_score': 0.20
+            })
+        elif self.industry == 'beauty_cosmetics':
+            weights.update({
+                'artistry_skills_score': 0.30,
+                'customer_service_score': 0.25,
+                'sales_performance_score': 0.20,
+                'product_knowledge_score': 0.15,
+                'creativity_score': 0.10
+            })
+        elif self.industry == 'hospitality_food':
+            weights.update({
+                'customer_service_score': 0.35,
+                'food_safety_score': 0.20,
+                'pos_systems_score': 0.15,
+                'upselling_score': 0.15,
+                'teamwork_score': 0.15
+            })
+        elif self.industry == 'arts_education':
+            weights.update({
+                'curriculum_development_score': 0.30,
+                'teaching_experience_score': 0.25,
+                'artistic_skills_score': 0.20,
+                'technology_integration_score': 0.15,
+                'leadership_score': 0.10
+            })
+        elif self.industry == 'it_architecture':
+            weights.update({
+                'technical_skills_score': 0.30,
+                'project_management_score': 0.25,
+                'team_leadership_score': 0.20,
+                'solution_design_score': 0.15,
+                'industry_knowledge_score': 0.10
+            })
+        elif self.industry == 'education_administration':
+            weights.update({
+                'leadership_score': 0.30,
+                'policy_implementation_score': 0.25,
+                'budget_management_score': 0.20,
+                'staff_development_score': 0.15,
+                'academic_improvement_score': 0.10
+            })
+        elif self.industry == 'military_aviation':
+            weights.update({
+                'technical_skills_score': 0.25,
+                'leadership_score': 0.25,
+                'training_development_score': 0.20,
+                'safety_compliance_score': 0.15,
+                'operational_experience_score': 0.15
+            })
+        elif self.industry == 'entry_level_service':
+            weights.update({
+                'customer_service_score': 0.35,
+                'teamwork_score': 0.25,
+                'multitasking_score': 0.20,
+                'technical_skills_score': 0.10,
+                'safety_compliance_score': 0.10
+            })
+        elif self.industry == 'financial_services':
+            weights.update({
+                'financial_analysis_score': 0.30,
+                'client_management_score': 0.25,
+                'regulatory_compliance_score': 0.20,
+                'portfolio_management_score': 0.15,
+                'technical_skills_score': 0.10
+            })
+        elif self.industry == 'entry_level_finance':
+            weights.update({
+                'financial_analysis_score': 0.35,
+                'academic_achievement_score': 0.25,
+                'technical_skills_score': 0.20,
+                'client_service_score': 0.15,
+                'teamwork_score': 0.05
+            })
+        elif self.industry == 'bpo_operations':
+            weights.update({
+                'operations_management_score': 0.30,
+                'team_leadership_score': 0.25,
+                'performance_metrics_score': 0.20,
+                'client_management_score': 0.15,
+                'process_improvement_score': 0.10
             })
         
         return weights
@@ -815,10 +1000,6 @@ class CVEvaluator:
         return scores
     
     def _parse_duration(self, duration_str):
-        import re
-        from dateutil import parser
-        from datetime import datetime
-
         try:
             dates = re.findall(r'(\w+\s+\d{4}|\d{1,2}/\d{4})', duration_str)
             if len(dates) == 2:
@@ -834,7 +1015,7 @@ class CVEvaluator:
             return max(duration / 12, 0)
         except Exception:
             return 0
-
+    
     # Add new evaluation methods for BPO operations industry
     def _evaluate_operations_management(self, cv_data):
         ops_terms = [
@@ -1625,7 +1806,7 @@ class CVEvaluator:
         present = set(k for k in required if cv_data.get(k) and 
                      (not isinstance(cv_data[k], (list, str)) or len(cv_data[k]) > 0))
         return (len(present) / len(required)) * 100 if required else 100
-    
+
     def _evaluate_experience(self, experiences):
         if not experiences:
             return 0
@@ -1685,43 +1866,70 @@ class CVEvaluator:
             total += max(0, min(100, score))
         
         return (total / len(education)) if education else 0
-    
+
     def _evaluate_skills(self, skills):
         if not skills:
             return 0
         
         total = 0
-        required_skills = self.criteria['required_skills']
+        required_skills = self.criteria.get('required_skills', [])
         
         for skill in skills:
             score = 5  # Base score
             
-            if len(skill.split()) > 1: score += 3
+            if len(skill.split()) > 1:
+                score += 3
             
             if required_skills and any(req.lower() in skill.lower() for req in required_skills):
                 score += 2
             
-            if self.industry == 'finance' and any(fs in skill.lower() for fs in ['risk', 'compliance', 'GAAP']):
-                score += 3
-            elif self.industry == 'media' and any(ms in skill.lower() for ms in ['content', 'social media']):
-                score += 3
-            elif self.industry == 'hospitality' and any(hs in skill.lower() for hs in ['guest', 'service']):
-                score += 3
-            elif self.industry == 'social_services' and any(ss in skill.lower() for ss in ['case management', 'crisis']):
-                score += 3
-            elif self.industry == 'customer_service' and any(cs in skill.lower() for cs in ['customer service', 'troubleshooting']):
-                score += 3
-            elif self.industry == 'natural_resources' and any(ns in skill.lower() for ns in ['ArcGIS', 'TAAMs', 'conservation']):
+            industry_keywords = []
+            if self.industry == 'finance':
+                industry_keywords = ['risk', 'compliance', 'gaap', 'accounting', 'portfolio', 'audit']
+            elif self.industry == 'media':
+                industry_keywords = ['content', 'social media', 'branding', 'campaign', 'public relations']
+            elif self.industry == 'hospitality':
+                industry_keywords = ['guest', 'service', 'hospitality', 'reservation', 'front desk']
+            elif self.industry == 'social_services':
+                industry_keywords = ['case management', 'crisis', 'advocacy', 'social work']
+            elif self.industry == 'customer_service':
+                industry_keywords = ['customer service', 'troubleshooting', 'support', 'help desk']
+            elif self.industry == 'natural_resources':
+                industry_keywords = ['arcgis', 'taams', 'conservation', 'wildlife', 'environmental']
+            elif self.industry == 'retail_fashion':
+                industry_keywords = ['sales', 'merchandising', 'retail', 'clienteling']
+            elif self.industry == 'beauty_cosmetics':
+                industry_keywords = ['makeup', 'cosmetics', 'artistry', 'skincare']
+            elif self.industry == 'hospitality_food':
+                industry_keywords = ['food safety', 'pos system', 'upselling', 'sanitation']
+            elif self.industry == 'arts_education':
+                industry_keywords = ['curriculum', 'teaching', 'visual arts', 'art education']
+            elif self.industry == 'it_architecture':
+                industry_keywords = ['architecture', 'data modeling', 'solution design', 'integration']
+            elif self.industry == 'education_administration':
+                industry_keywords = ['leadership', 'policy', 'budget', 'staff development']
+            elif self.industry == 'military_aviation':
+                industry_keywords = ['aviation', 'flight', 'safety compliance', 'training']
+            elif self.industry == 'entry_level_service':
+                industry_keywords = ['customer service', 'multitasking', 'safety', 'teamwork']
+            elif self.industry == 'financial_services':
+                industry_keywords = ['financial analysis', 'compliance', 'portfolio management', 'client relations']
+            elif self.industry == 'entry_level_finance':
+                industry_keywords = ['financial modeling', 'analysis', 'valuation', 'excel']
+            elif self.industry == 'bpo_operations':
+                industry_keywords = ['operations management', 'kpi', 'performance metrics', 'client management']
+            
+            if any(kw in skill.lower() for kw in industry_keywords):
                 score += 3
             
-            if any(software in skill.lower() for software in ['quickbooks', 'excel', 'database']):
+            if any(software in skill.lower() for software in ['quickbooks', 'excel', 'database', 'crm', 'erp']):
                 score += 2
             
             total += min(10, score)
         
         max_possible = len(skills) * 10
         return (total / max_possible) * 100 if max_possible > 0 else 0
-    
+
     def _evaluate_achievements(self, achievements):
         if not achievements:
             return 0
@@ -1775,7 +1983,7 @@ class CVEvaluator:
         elif words > 1200: score -= 10
         
         return max(0, min(100, score))
-    
+
     def _calculate_total_experience(self, experiences):
         total_months = sum(self._parse_duration(exp.get('duration', '')) for exp in experiences)
         return round(total_months / 12, 1)
@@ -1785,201 +1993,588 @@ class CVEvaluator:
         
         if scores['section_completeness'] < 100:
             missing = [s for s in self.criteria['required_sections'] 
-                      if not cv_data.get(s) or (isinstance(cv_data[s], (list, str)) and not cv_data[s])]
+                    if not cv_data.get(s) or (isinstance(cv_data[s], (list, str)) and not cv_data[s])]
             if missing:
-                feedback.append(f"Missing sections: {', '.join(missing)}")
+                feedback.append(
+                    f"Your CV is missing some critical sections: {', '.join(missing)}. "
+                    f"It is important to include all major sections such as Summary, Experience, Education, and Skills "
+                    f"to give a complete view of your profile. Recruiters expect these sections to quickly assess your fit. "
+                    f"Consider carefully reviewing your resume template and ensuring all essential sections are covered. "
+                    f"Missing sections can make your resume feel incomplete or less professional."
+                )
         
         if scores['experience_quality'] < 70:
-            feedback.append("Experience section could be improved with more quantifiable achievements")
+            feedback.append(
+                "Your experience section needs improvement. Try to highlight specific accomplishments, "
+                "mention quantifiable results (e.g., 'Increased sales by 20%'), and use active, strong verbs. "
+                "Instead of just listing duties, focus on the impact you had in your previous roles. "
+                "Recruiters value clear evidence of success. Also, ensure consistent formatting for job titles, dates, and companies."
+            )
         elif scores['experience_quality'] >= 85:
-            feedback.append("Strong experience section with good quantifiable achievements")
+            feedback.append(
+                "Your experience section is a major strength. You have successfully included strong, quantifiable results "
+                "and framed your achievements with action-driven language. "
+                "Maintaining this focus on results and clarity will position you very well with recruiters. "
+                "You may still consider fine-tuning bullet points for even sharper readability."
+            )
         
         if scores['education_quality'] < 60:
-            feedback.append("Education section could be strengthened with more details")
+            feedback.append(
+                "The education section could be strengthened. Make sure to include your degree, major, university name, and graduation date. "
+                "If you have honors, scholarships, or relevant coursework, be sure to mention them. "
+                "Even if your education is not recent, showcasing it professionally adds to credibility. "
+                "Consider using consistent formatting for clarity."
+            )
         elif scores['education_quality'] >= 80:
-            feedback.append("Impressive educational background")
+            feedback.append(
+                "Your educational background is impressive and clearly communicated. "
+                "Listing relevant honors, projects, or coursework would make it even stronger. "
+                "Ensure formatting remains clean and consistent for maximum impact. "
+                "Consider adding certifications if relevant to the target job."
+            )
         
         if scores['skills_relevance'] < 60:
-            feedback.append("Skills section could be more specific and relevant to the target industry")
+            feedback.append(
+                "Your skills section could be more aligned with the industry you are targeting. "
+                "Prioritize listing technical skills, software, and industry-specific competencies. "
+                "Avoid overly generic terms and instead match your skills to the job descriptions you're applying for. "
+                "Grouping skills into categories (Technical, Communication, Leadership) can also improve readability."
+            )
         elif scores['skills_relevance'] >= 80:
-            feedback.append("Excellent skills section with relevant industry skills")
+            feedback.append(
+                "Your skills section is very strong, showing a direct match to industry needs. "
+                "Continue tailoring your skills list for each application to maximize relevance. "
+                "You might also consider adding a short technical or tools section if applying for specialized roles."
+            )
         
         if scores['achievements_quality'] < 50:
-            feedback.append("Add measurable achievements with numbers to strengthen this section")
+            feedback.append(
+                "Your achievements could be made more impactful by using numbers, percentages, or clear results. "
+                "Phrases like 'Saved 10% annual costs' or 'Increased customer satisfaction by 15%' stand out strongly. "
+                "Try to frame each accomplishment as a challenge, action, and result (CAR method). "
+                "This makes your contributions immediately measurable and valuable to employers."
+            )
         elif scores['achievements_quality'] >= 75:
-            feedback.append("Strong achievements section with measurable results")
+            feedback.append(
+                "Your achievements are a highlight of your resume. "
+                "Quantifiable results and clear outcomes create a strong impression. "
+                "Continue emphasizing measurable results in all future updates to maintain this high standard."
+            )
         
         if scores['structure_quality'] < 60:
-            feedback.append("Improve structure with bullet points and clear sections")
+            feedback.append(
+                "The structure of your CV could be improved. Use clear headings, bullet points, and logical section breaks. "
+                "Avoid large text blocks; make content skimmable. "
+                "Consistent use of fonts, alignment, and spacing dramatically improves first impressions. "
+                "A clean structure can often be the difference between getting shortlisted or ignored."
+            )
         elif scores['structure_quality'] >= 80:
-            feedback.append("Well-structured CV with good organization")
+            feedback.append(
+                "Your CV is well-structured and easy to read. Clear headings and bullet points make it skimmable, "
+                "which recruiters appreciate. "
+                "Ensure you continue to keep formatting clean and avoid overcrowding information. "
+                "Small improvements like optimizing margin spacing could still add polish."
+            )
         
         # Industry-specific feedback
         if self.industry == 'finance':
             if scores.get('technical_skills_score', 0) < 60:
-                feedback.append("Highlight more technical finance skills like risk management and compliance")
-            
+                feedback.append(
+                "Your technical skills in finance could be strengthened. Highlight expertise in risk management, compliance frameworks, "
+                "and financial analysis tools like Bloomberg or QuickBooks. Mention certifications or hands-on system experience. "
+                "Employers in finance expect robust technical proficiency to manage complex financial operations."
+                )
+        
         elif self.industry == 'social_services':
             if scores.get('case_management_score', 0) < 60:
-                feedback.append("Could emphasize case management experience more")
+                feedback.append(
+                    "Case management experience could be more clearly emphasized. Share examples of client assessments, treatment planning, "
+                    "and service coordination. Describe any measurable outcomes or program success you contributed to. "
+                    "Social services employers value hands-on experience with diverse populations."
+                )
             if scores.get('crisis_intervention_score', 0) < 50:
-                feedback.append("Consider highlighting crisis intervention experience")
+                feedback.append(
+                    "Your crisis intervention skills could be showcased better. Mention situations where you de-escalated crises, "
+                    "provided emergency support, or worked with high-risk individuals. Certifications in mental health first aid or crisis management "
+                    "would add credibility to your profile."
+                )
         
         elif self.industry == 'customer_service':
             if scores.get('customer_service_score', 0) < 65:
-                feedback.append("Could showcase more customer service achievements")
+                feedback.append(
+                    "Customer service achievements could be highlighted more strongly. Share metrics like customer satisfaction ratings, "
+                    "awards, or success stories. Recruiters look for evidence of excellent interpersonal skills and service consistency. "
+                    "Consider adding short customer testimonials if appropriate."
+                )
             if scores.get('problem_solving_score', 0) < 50:
-                feedback.append("Highlight more problem-solving examples")
+                feedback.append(
+                    "Problem-solving examples could be improved. Describe real scenarios where you resolved customer complaints, "
+                    "improved service processes, or developed creative solutions under pressure. Concrete examples can greatly boost your appeal."
+                )
         
         elif self.industry == 'natural_resources':
             if scores.get('field_experience_score', 0) < 60:
-                feedback.append("Could emphasize more field experience and hands-on work")
+                feedback.append(
+                    "More emphasis on field experience would strengthen your CV. Highlight work on environmental surveys, inspections, "
+                    "conservation projects, or land management tasks. Mention certifications and technical fieldwork skills to stand out."
+                )
             if scores.get('regulatory_knowledge_score', 0) < 50:
-                feedback.append("Consider highlighting specific regulatory knowledge and compliance experience")
+                feedback.append(
+                    "Regulatory knowledge should be more prominent. Share your understanding of environmental laws like NEPA, "
+                    "CFR regulations, or other compliance procedures you've followed. This showcases your preparedness for regulatory roles."
+                )
             if scores.get('technical_skills_score', 0) < 50:
-                feedback.append("Showcase more technical skills like GIS and data management")
-        
-        # Add feedback for retail/fashion industry
+                feedback.append(
+                    "Technical skills such as GIS, GPS data collection, and environmental software should be highlighted. "
+                    "Discuss hands-on tools used in past projects. Specific technical proficiencies make a big difference in natural resources careers."
+                )
+
         elif self.industry == 'retail_fashion':
             if scores.get('sales_performance_score', 0) < 60:
-                feedback.append("Could highlight more quantifiable sales achievements")
+                feedback.append(
+                    "Your sales achievements could be better emphasized. Mention specific sales targets achieved, upselling success, "
+                    "or customer loyalty improvements. Numbers and results build credibility and attract retail hiring managers."
+                )
             if scores.get('team_leadership_score', 0) < 50:
-                feedback.append("Consider emphasizing team development and leadership examples")
+                feedback.append(
+                    "Leadership examples in retail settings are important. Share stories where you motivated teams, improved sales performance, "
+                    "or mentored junior associates. Team leadership in fast-paced environments is highly sought after."
+                )
             if scores.get('business_development_score', 0) < 50:
-                feedback.append("Could showcase more business growth initiatives")
+                feedback.append(
+                    "Business development initiatives should be more visible. Highlight strategies you contributed to for store growth, "
+                    "new customer acquisition, or brand partnerships that enhanced performance."
+                )
         
-        # Add feedback for beauty/cosmetics industry
         elif self.industry == 'beauty_cosmetics':
             if scores.get('artistry_skills_score', 0) < 60:
-                feedback.append("Could highlight more specific artistry skills and techniques")
+                feedback.append(
+                    "Artistry skills could be elaborated with more examples. Talk about specific makeup styles you specialize in, "
+                    "client transformations, editorial shoots, or competitions participated in. Demonstrating creativity helps you stand out."
+                )
             if scores.get('product_knowledge_score', 0) < 50:
-                feedback.append("Consider emphasizing product knowledge and training")
+                feedback.append(
+                    "Product knowledge is critical. List familiarity with major brands, participation in product launches, "
+                    "or experience conducting client education. Depth of product expertise can significantly impress employers."
+                )
             if scores.get('creativity_score', 0) < 50:
-                feedback.append("Could showcase more creative work examples")
+                feedback.append(
+                    "Your creativity could be more visible. Share original makeup looks, creative campaigns, or innovative client transformations. "
+                    "Visual portfolios, even small ones, can showcase your artistic impact."
+                )
         
-        # Add feedback for hospitality/food service industry
         elif self.industry == 'hospitality_food':
             if scores.get('food_safety_score', 0) < 60:
-                feedback.append("Could highlight more food safety and sanitation experience")
+                feedback.append(
+                    "Food safety experience should be more prominent. Mention certifications like ServSafe, "
+                    "successful inspections, or personal commitment to sanitation protocols. Health compliance is essential in food roles."
+                )
             if scores.get('pos_systems_score', 0) < 50:
-                feedback.append("Consider emphasizing POS system proficiency")
+                feedback.append(
+                    "POS system experience could be better highlighted. Familiarity with platforms like Square, Toast, or Aloha "
+                    "can be a deciding factor in hospitality hiring. Be specific about the systems you’ve operated."
+                )
             if scores.get('upselling_score', 0) < 50:
-                feedback.append("Could showcase more upselling and sales achievements")
+                feedback.append(
+                    "Your upselling success could be better demonstrated. Discuss how you increased average order value, "
+                    "met promotional targets, or contributed to revenue boosts through effective sales strategies."
+                )
             if scores.get('teamwork_score', 0) < 50:
-                feedback.append("Consider adding more teamwork and training examples")
+                feedback.append(
+                    "Teamwork examples in fast-paced hospitality settings should be stronger. Mention collaboration across shifts, "
+                    "event coordination, or leadership in high-demand scenarios. Teamwork stories show adaptability."
+                )
         
-        # Add feedback for arts education industry
         elif self.industry == 'arts_education':
             if scores.get('curriculum_development_score', 0) < 60:
-                feedback.append("Could highlight more curriculum development experience")
+                feedback.append(
+                    "Curriculum development experience should be more prominent. Mention any programs you designed, interdisciplinary courses created, "
+                    "or improvements you led. Demonstrate how your contributions impacted student learning outcomes positively."
+                )
             if scores.get('teaching_experience_score', 0) < 50:
-                feedback.append("Consider emphasizing years of teaching experience")
+                feedback.append(
+                    "Teaching experience could be more detailed. Highlight years taught, age groups, artistic disciplines, and instructional methods. "
+                    "Quantify your impact wherever possible (e.g., student competition wins, increased engagement scores)."
+                )
             if scores.get('artistic_skills_score', 0) < 50:
-                feedback.append("Could showcase more diverse artistic skills")
+                feedback.append(
+                    "Your diverse artistic skills should be better showcased. Mention mediums you specialize in, exhibitions participated in, "
+                    "or community arts initiatives. Diversity in arts education strengthens your teaching portfolio."
+                )
             if scores.get('technology_integration_score', 0) < 50:
-                feedback.append("Consider adding more technology integration examples")
+                feedback.append(
+                    "Technology integration should be emphasized. Describe how you incorporated digital tools, "
+                    "virtual galleries, online art classes, or edtech platforms into your curriculum delivery."
+                )
         
-        # Add feedback for IT architecture industry
         elif self.industry == 'it_architecture':
             if scores.get('technical_skills_score', 0) < 60:
-                feedback.append("Could highlight more specific technical skills and certifications")
+                feedback.append(
+                    "Technical skills in IT Architecture could be strengthened. Highlight expertise with cloud platforms, system integrations, "
+                    "solution architecture frameworks, and key technologies like AWS, Azure, or Kubernetes. Technical certifications also help."
+                )
             if scores.get('project_management_score', 0) < 50:
-                feedback.append("Consider emphasizing project delivery and timeline management")
+                feedback.append(
+                    "Project management in IT delivery should be clearer. Mention timelines handled, cross-team coordination, "
+                    "and success in deploying complex systems. Use metrics if possible (e.g., 'delivered project 15% under budget')."
+                )
             if scores.get('team_leadership_score', 0) < 50:
-                feedback.append("Could showcase more team leadership and mentoring examples")
+                feedback.append(
+                    "Team leadership examples should be highlighted. Discuss how you mentored junior architects, led design teams, "
+                    "or drove cross-functional collaboration across technical and business units."
+                )
             if scores.get('solution_design_score', 0) < 50:
-                feedback.append("Consider adding more solution architecture and design examples")
+                feedback.append(
+                    "Solution design examples could be stronger. Explain how you conceptualized architectures that solved business problems, "
+                    "improved scalability, or optimized performance."
+                )
         
-        # Add feedback for education administration industry
         elif self.industry == 'education_administration':
             if scores.get('leadership_score', 0) < 60:
-                feedback.append("Could highlight more leadership initiatives and strategic decisions")
+                feedback.append(
+                    "Leadership achievements could be stronger. Mention strategic initiatives you led, programs launched, "
+                    "or reforms introduced. Leadership in education often involves cross-functional influence and stakeholder engagement."
+                )
             if scores.get('policy_implementation_score', 0) < 50:
-                feedback.append("Consider emphasizing policy development and implementation")
+                feedback.append(
+                    "Policy implementation work should be clearer. Describe developing school or district policies, "
+                    "compliance improvements, or how you ensured regulatory adherence and measurable results."
+                )
             if scores.get('budget_management_score', 0) < 50:
-                feedback.append("Could showcase more budget management and fiscal oversight")
+                feedback.append(
+                    "Budget management experience needs more emphasis. Share successes in allocating resources, balancing budgets, "
+                    "or leading financial planning initiatives that improved efficiency."
+                )
             if scores.get('staff_development_score', 0) < 50:
-                feedback.append("Consider adding more staff development and training examples")
+                feedback.append(
+                    "Staff development should be highlighted. Talk about workshops you created, mentorship programs initiated, "
+                    "or teacher development strategies that boosted performance and morale."
+                )
         
-        # Add feedback for military/aviation industry
         elif self.industry == 'military_aviation':
             if scores.get('technical_skills_score', 0) < 60:
-                feedback.append("Could highlight more specific aviation technical skills and certifications")
+                feedback.append(
+                    "Technical aviation skills should be emphasized more. Share your knowledge of aviation systems, avionics, flight operations, "
+                    "and maintenance procedures. Certification details (e.g., FAA ratings) should be clearly mentioned."
+                )
             if scores.get('leadership_score', 0) < 50:
-                feedback.append("Consider emphasizing leadership roles and team management")
+                feedback.append(
+                    "Leadership within aviation environments should be highlighted. Discuss squadron management, unit readiness leadership, "
+                    "or experience supervising flight or maintenance crews under operational pressure."
+                )
             if scores.get('training_development_score', 0) < 50:
-                feedback.append("Could showcase more training development and instruction examples")
+                feedback.append(
+                    "Training and development experience should be more detailed. Describe programs you built for technical training, "
+                    "safety compliance, or leadership development within military or aviation contexts."
+                )
             if scores.get('safety_compliance_score', 0) < 50:
-                feedback.append("Consider adding more safety and compliance examples")
+                feedback.append(
+                    "Safety compliance efforts need more visibility. Share achievements maintaining operational safety standards, "
+                    "audit results, or corrective actions led during inspections."
+                )
         
-        # Add feedback for entry-level service industry
         elif self.industry == 'entry_level_service':
             if scores.get('customer_service_score', 0) < 60:
-                feedback.append("Could highlight more customer service achievements and skills")
+                feedback.append(
+                    "Customer service skills should be highlighted with real examples. Mention high-volume handling, satisfaction scores, "
+                    "or customer commendations. Basic service achievements set entry-level candidates apart quickly."
+                )
             if scores.get('teamwork_score', 0) < 50:
-                feedback.append("Consider emphasizing teamwork and collaboration examples")
+                feedback.append(
+                    "Teamwork experiences should be clearer. Describe situations where you worked collaboratively, "
+                    "helped cover shifts, or supported team goals during high-pressure periods."
+                )
             if scores.get('multitasking_score', 0) < 50:
-                feedback.append("Could showcase more multitasking abilities")
+                feedback.append(
+                    "Multitasking skills should be showcased. Discuss handling multiple tasks simultaneously, "
+                    "juggling customer interactions, administrative work, and operational duties."
+                )
             if scores.get('technical_skills_score', 0) < 50:
-                feedback.append("Consider adding more technical skills and systems experience")
-        
-        # Add feedback for financial services industry
+                feedback.append(
+                    "Basic technical skills should be strengthened. Mention POS systems, Microsoft Office tools, or ticketing systems you operated. "
+                    "Technical comfort boosts employability even for service roles."
+                )
+
         elif self.industry == 'financial_services':
             if scores.get('financial_analysis_score', 0) < 60:
-                feedback.append("Could highlight more financial analysis and modeling experience")
+                feedback.append(
+                    "Financial analysis skills could be stronger. Highlight experience with forecasting, budgeting, risk assessment, "
+                    "or investment strategy development. Quantifiable financial results create a strong impression."
+                )
             if scores.get('client_management_score', 0) < 50:
-                feedback.append("Consider emphasizing client relationship management examples")
+                feedback.append(
+                    "Client relationship management should be emphasized. Discuss relationship building, retention improvements, "
+                    "and how you handled client portfolios or account renewals successfully."
+                )
             if scores.get('regulatory_compliance_score', 0) < 50:
-                feedback.append("Could showcase more regulatory compliance knowledge")
+                feedback.append(
+                    "Regulatory compliance experience should be clearer. Mention your understanding of SEC, SOX, AML, or Dodd-Frank regulations, "
+                    "and share real examples of compliance project involvement."
+                )
             if scores.get('portfolio_management_score', 0) < 50:
-                feedback.append("Consider adding more portfolio management examples")
-        
-        # Add feedback for entry-level finance industry
+                feedback.append(
+                    "Portfolio management contributions should be better detailed. Describe asset allocation strategies, risk diversification, "
+                    "or portfolio growth metrics you achieved."
+                )
+
         elif self.industry == 'entry_level_finance':
             if scores.get('financial_analysis_score', 0) < 60:
-                feedback.append("Could highlight more financial analysis and research projects")
+                feedback.append(
+                    "Financial analysis exposure could be improved. Mention internships, university projects, or simulations "
+                    "where you performed forecasting, valuation, or data modeling using Excel or similar tools."
+                )
             if scores.get('academic_achievement_score', 0) < 50:
-                feedback.append("Consider emphasizing academic achievements and coursework")
+                feedback.append(
+                    "Academic achievements need better emphasis. Highlight GPA (if strong), scholarships, dean’s list honors, "
+                    "or finance-related coursework to build credibility for entry-level finance roles."
+                )
             if scores.get('technical_skills_score', 0) < 50:
-                feedback.append("Could showcase more technical skills like Excel modeling")
+                feedback.append(
+                    "Technical finance skills such as Excel modeling, Python for finance, or Bloomberg Terminal usage "
+                    "should be showcased to demonstrate analytical readiness."
+                )
             if scores.get('client_service_score', 0) < 50:
-                feedback.append("Consider adding more client service examples")
-        
-        # Add feedback for BPO operations industry
+                feedback.append(
+                    "Client service exposure could be improved. Mention internship experiences, university consulting projects, "
+                    "or volunteer work that developed your client-facing skills."
+                )
+
         elif self.industry == 'bpo_operations':
             if scores.get('operations_management_score', 0) < 60:
-                feedback.append("Could highlight more operations management experience")
+                feedback.append(
+                    "Operations management should be emphasized more. Highlight handling KPIs, optimizing workflows, "
+                    "or achieving service-level agreements (SLAs) consistently in BPO environments."
+                )
             if scores.get('team_leadership_score', 0) < 50:
-                feedback.append("Consider emphasizing team leadership and staff development")
+                feedback.append(
+                    "Leadership examples managing BPO teams should be shared. Discuss scheduling, performance monitoring, "
+                    "coaching underperformers, or driving team metrics."
+                )
             if scores.get('performance_metrics_score', 0) < 50:
-                feedback.append("Could showcase more performance metrics and KPI improvements")
+                feedback.append(
+                    "Performance metrics achievements could be clearer. Talk about call quality improvements, "
+                    "productivity gains, or first-call resolution rate increases you contributed to."
+                )
             if scores.get('client_management_score', 0) < 50:
-                feedback.append("Consider adding more client management examples")
+                feedback.append(
+                    "Client management stories should be highlighted. Mention direct client communications, meeting client KPIs, "
+                    "or upselling additional services within BPO operations."
+                )
         
-        # Add feedback for customer service industry
-        elif self.industry == 'customer_service':
-            if scores.get('customer_relations_score', 0) < 60:
-                feedback.append("Could highlight more customer service achievements")
-            if scores.get('multilingual_score', 0) < 50:
-                feedback.append("Consider emphasizing multilingual capabilities")
-            if scores.get('problem_solving_score', 0) < 50:
-                feedback.append("Could showcase more problem-solving examples")
-            if scores.get('technical_skills_score', 0) < 50:
-                feedback.append("Consider adding more technical service skills")
-
         # Strengths
         strengths = []
-        if scores['experience_quality'] >= 80:
-            strengths.append("strong work experience")
-        if scores['education_quality'] >= 80:
-            strengths.append("solid educational background")
+
+        # General strengths
+        if scores.get('experience_quality', 0) >= 80:
+            strengths.append("strong and impactful work experience")
+        if scores.get('education_quality', 0) >= 80:
+            strengths.append("solid educational background with good credentials")
+        if scores.get('skills_relevance', 0) >= 80:
+            strengths.append("highly relevant skill set for the industry")
+        if scores.get('achievements_quality', 0) >= 75:
+            strengths.append("impressive list of measurable achievements")
+        if scores.get('structure_quality', 0) >= 80:
+            strengths.append("well-organized and professional CV structure")
+
+        # Industry-specific strengths
+        if self.industry == 'finance':
+            if scores.get('technical_skills_score', 0) >= 70:
+                strengths.append("strong technical finance capabilities")
+            if scores.get('compliance_score', 0) >= 70:
+                strengths.append("good compliance and risk management knowledge")
+
+        elif self.industry == 'social_services':
+            if scores.get('case_management_score', 0) >= 70:
+                strengths.append("strong case management experience")
+            if scores.get('crisis_intervention_score', 0) >= 70:
+                strengths.append("effective crisis intervention skills")
+
+        elif self.industry == 'customer_service':
+            if scores.get('customer_service_score', 0) >= 70:
+                strengths.append("excellent customer service skills")
+            if scores.get('problem_solving_score', 0) >= 65:
+                strengths.append("strong problem-solving abilities")
+
+        elif self.industry == 'natural_resources':
+            if scores.get('field_experience_score', 0) >= 70:
+                strengths.append("extensive field experience in natural resource projects")
+            if scores.get('regulatory_knowledge_score', 0) >= 65:
+                strengths.append("good knowledge of environmental regulations and compliance")
+            if scores.get('technical_skills_score', 0) >= 65:
+                strengths.append("strong technical skills in GIS and field technologies")
+
+        elif self.industry == 'retail_fashion':
+            if scores.get('sales_performance_score', 0) >= 70:
+                strengths.append("excellent retail sales performance")
+            if scores.get('team_leadership_score', 0) >= 65:
+                strengths.append("good team leadership in retail environments")
+
+        elif self.industry == 'beauty_cosmetics':
+            if scores.get('artistry_skills_score', 0) >= 70:
+                strengths.append("strong makeup artistry skills")
+            if scores.get('product_knowledge_score', 0) >= 65:
+                strengths.append("deep beauty product knowledge")
+
+        elif self.industry == 'hospitality_food':
+            if scores.get('customer_service_score', 0) >= 70:
+                strengths.append("excellent customer service in hospitality")
+            if scores.get('food_safety_score', 0) >= 65:
+                strengths.append("good food safety and sanitation practices")
+
+        elif self.industry == 'arts_education':
+            if scores.get('teaching_experience_score', 0) >= 70:
+                strengths.append("strong teaching experience")
+            if scores.get('curriculum_development_score', 0) >= 65:
+                strengths.append("effective curriculum development skills")
+
+        elif self.industry == 'it_architecture':
+            if scores.get('technical_skills_score', 0) >= 70:
+                strengths.append("robust technical skills in IT architecture")
+            if scores.get('solution_design_score', 0) >= 65:
+                strengths.append("solid solution design capabilities")
+
+        elif self.industry == 'education_administration':
+            if scores.get('leadership_score', 0) >= 70:
+                strengths.append("strong leadership in educational institutions")
+            if scores.get('policy_implementation_score', 0) >= 65:
+                strengths.append("effective policy development and implementation")
+
+        elif self.industry == 'military_aviation':
+            if scores.get('technical_skills_score', 0) >= 70:
+                strengths.append("strong technical aviation skills")
+            if scores.get('leadership_score', 0) >= 65:
+                strengths.append("solid leadership in aviation operations")
+
+        elif self.industry == 'entry_level_service':
+            if scores.get('customer_service_score', 0) >= 70:
+                strengths.append("strong customer interaction and service delivery skills")
+            if scores.get('multitasking_score', 0) >= 65:
+                strengths.append("excellent multitasking abilities")
+
+        elif self.industry == 'financial_services':
+            if scores.get('financial_analysis_score', 0) >= 70:
+                strengths.append("strong financial analysis and investment skills")
+            if scores.get('portfolio_management_score', 0) >= 65:
+                strengths.append("good portfolio management capabilities")
+
+        elif self.industry == 'entry_level_finance':
+            if scores.get('financial_analysis_score', 0) >= 70:
+                strengths.append("good financial analysis understanding for entry-level")
+            if scores.get('academic_achievement_score', 0) >= 65:
+                strengths.append("strong academic performance in finance studies")
+
+        elif self.industry == 'bpo_operations':
+            if scores.get('operations_management_score', 0) >= 70:
+                strengths.append("strong operations management in BPO sector")
+            if scores.get('performance_metrics_score', 0) >= 65:
+                strengths.append("good performance metrics and KPI management skills")
         
-        if self.industry == 'finance' and scores.get('technical_skills_score', 0) >= 70:
-            strengths.append("strong technical finance skills")
-        elif self.industry == 'natural_resources' and scores.get('field_experience_score', 0) >= 70:
-            strengths.append("extensive field experience")
-        
-        if strengths:
-            feedback.append(f"Strengths: {', '.join(strengths)}")
-        
+        # Weaknesses
+        weaknesses = []
+
+        # General weaknesses
+        if scores.get('experience_quality', 0) < 60:
+            weaknesses.append("work experience section is weak and lacks quantifiable achievements")
+        if scores.get('education_quality', 0) < 60:
+            weaknesses.append("education details are limited or missing important information")
+        if scores.get('skills_relevance', 0) < 60:
+            weaknesses.append("skills section lacks relevance to the target industry")
+        if scores.get('achievements_quality', 0) < 50:
+            weaknesses.append("achievements are minimal and not measurable with results")
+        if scores.get('structure_quality', 0) < 60:
+            weaknesses.append("CV structure is poorly organized, making it hard to skim")
+
+        # Industry-specific weaknesses
+        if self.industry == 'finance':
+            if scores.get('technical_skills_score', 0) < 60:
+                weaknesses.append("technical finance skills like risk management and financial modeling are insufficient")
+            if scores.get('compliance_score', 0) < 50:
+                weaknesses.append("compliance and regulatory understanding is weak, which is critical in finance roles")
+
+        elif self.industry == 'social_services':
+            if scores.get('case_management_score', 0) < 60:
+                weaknesses.append("case management experience is not clearly demonstrated")
+            if scores.get('crisis_intervention_score', 0) < 50:
+                weaknesses.append("crisis intervention skills are missing or underrepresented")
+
+        elif self.industry == 'customer_service':
+            if scores.get('customer_service_score', 0) < 65:
+                weaknesses.append("customer service accomplishments are insufficiently detailed")
+            if scores.get('problem_solving_score', 0) < 50:
+                weaknesses.append("problem-solving examples are missing or vague")
+
+        elif self.industry == 'natural_resources':
+            if scores.get('field_experience_score', 0) < 60:
+                weaknesses.append("field experience in natural resource projects is lacking")
+            if scores.get('regulatory_knowledge_score', 0) < 50:
+                weaknesses.append("regulatory and compliance knowledge is weak")
+            if scores.get('technical_skills_score', 0) < 50:
+                weaknesses.append("technical skills such as GIS and environmental tools are poorly represented")
+
+        elif self.industry == 'retail_fashion':
+            if scores.get('sales_performance_score', 0) < 60:
+                weaknesses.append("sales performance results are weak or missing")
+            if scores.get('team_leadership_score', 0) < 50:
+                weaknesses.append("team leadership experience in retail settings is underdeveloped")
+
+        elif self.industry == 'beauty_cosmetics':
+            if scores.get('artistry_skills_score', 0) < 60:
+                weaknesses.append("artistry skills and techniques are not showcased well")
+            if scores.get('product_knowledge_score', 0) < 50:
+                weaknesses.append("product knowledge about cosmetics brands is insufficient")
+
+        elif self.industry == 'hospitality_food':
+            if scores.get('food_safety_score', 0) < 60:
+                weaknesses.append("food safety training and certifications are not clearly mentioned")
+            if scores.get('pos_systems_score', 0) < 50:
+                weaknesses.append("experience with POS systems in hospitality is limited")
+
+        elif self.industry == 'arts_education':
+            if scores.get('curriculum_development_score', 0) < 60:
+                weaknesses.append("curriculum development contributions are minimal or missing")
+            if scores.get('teaching_experience_score', 0) < 50:
+                weaknesses.append("teaching experience across diverse age groups is poorly detailed")
+
+        elif self.industry == 'it_architecture':
+            if scores.get('technical_skills_score', 0) < 60:
+                weaknesses.append("technical architecture skills and certifications are insufficient")
+            if scores.get('solution_design_score', 0) < 50:
+                weaknesses.append("solution design experience is missing or too general")
+
+        elif self.industry == 'education_administration':
+            if scores.get('leadership_score', 0) < 60:
+                weaknesses.append("leadership achievements in education administration are lacking")
+            if scores.get('policy_implementation_score', 0) < 50:
+                weaknesses.append("policy implementation experience is missing or weak")
+
+        elif self.industry == 'military_aviation':
+            if scores.get('technical_skills_score', 0) < 60:
+                weaknesses.append("aviation technical skills need better representation")
+            if scores.get('safety_compliance_score', 0) < 50:
+                weaknesses.append("safety compliance experience in aviation is underdeveloped")
+
+        elif self.industry == 'entry_level_service':
+            if scores.get('customer_service_score', 0) < 60:
+                weaknesses.append("customer service abilities at the entry level are weak")
+            if scores.get('multitasking_score', 0) < 50:
+                weaknesses.append("multitasking skills for service roles are poorly demonstrated")
+
+        elif self.industry == 'financial_services':
+            if scores.get('financial_analysis_score', 0) < 60:
+                weaknesses.append("financial analysis expertise is insufficient for financial services roles")
+            if scores.get('regulatory_compliance_score', 0) < 50:
+                weaknesses.append("regulatory compliance understanding is weak")
+
+        elif self.industry == 'entry_level_finance':
+            if scores.get('financial_analysis_score', 0) < 60:
+                weaknesses.append("financial analysis and modeling experience is weak for entry-level finance roles")
+            if scores.get('academic_achievement_score', 0) < 50:
+                weaknesses.append("academic achievements related to finance are not highlighted well")
+
+        elif self.industry == 'bpo_operations':
+            if scores.get('operations_management_score', 0) < 60:
+                weaknesses.append("operations management and KPI tracking experience is insufficient")
+            if scores.get('performance_metrics_score', 0) < 50:
+                weaknesses.append("performance metrics and improvement initiatives are poorly represented")
+
         return feedback if feedback else ["CV looks good overall"]
