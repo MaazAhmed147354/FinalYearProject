@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import MainLayout from "./layouts/MainLayout1";
+import MainLayout from "./layouts/MainLayout";
 import Dashboard from "./pages/dashboard/Dashboard";
 import EmailIntegration from "./pages/email/EmailIntegration";
 import CreateJob from "./pages/jobs/CreateJobs";
@@ -13,7 +13,7 @@ import Register from "./pages/auth/Register";
 
 const App = () => {
   // For demo purposes, let's assume the user is logged in
-  const isLoggedIn = true;
+  const isLoggedIn = false;
 
   return (
     <Router>

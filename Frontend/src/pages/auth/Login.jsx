@@ -22,7 +22,7 @@ const Login = () => {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl text-center">
-            Smart Resume Parser
+            ResuMatch
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -57,7 +57,7 @@ const Login = () => {
 
             <Button
               type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600"
+              className="w-full bg-blue-500 hover:bg-blue-600 py-2 text-lg"
             >
               Login
             </Button>
@@ -74,12 +74,12 @@ const Login = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" className="w-full">
-                <Github className="mr-2 h-4 w-4" />
+              <Button variant="outline" className="w-full hover:bg-[#151013] hover:text-white text-md">
+                <Github className="mr-1 h-4 w-4" />
                 Github
               </Button>
-              <Button variant="outline" className="w-full">
-                <Linkedin className="mr-2 h-4 w-4" />
+              <Button variant="outline" className="w-full py-2 hover:bg-[#0A66C2] hover:text-gray-50 text-md">
+                <Linkedin className="mr-1 h-4 w-4" />
                 LinkedIn
               </Button>
             </div>
