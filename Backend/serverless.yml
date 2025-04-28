@@ -9,9 +9,10 @@ functions:
       - http:
           path: hello
           method: get
-          
+
+  # Logging Functions    
   loginUser:
-    handler: src/handlers/loginHandler.loginUser
+    handler: src/handlers/loggingHandler.loginUser
     timeout: 30
     events:
       - http:
@@ -22,6 +23,22 @@ functions:
             headers:
               - Content-Type
               - X-Custom-Header
+      
+  logoutUser:
+    handler: src/handlers/loggingHandler.logoutUser
+    timeout: 30
+    events:
+      - http:
+          path: logoutUser
+          method: post
+          cors:
+            origin: "http://localhost:3001"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+
+  # Job Functions
+
 
 plugins:
   - serverless-offline

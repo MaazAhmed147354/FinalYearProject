@@ -1,4 +1,4 @@
-const loginService = require("../services/loginService");
+const loginService = require("../services/loggingService");
 const responseHelper = require("../utils/responseHelper");
 
 exports.loginUser = async (event) => {
