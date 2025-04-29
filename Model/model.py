@@ -2,6 +2,7 @@ import re
 from collections import defaultdict
 from datetime import datetime
 from dateutil import parser
+import logging
 
 class CVEvaluationSystem:
     def __init__(self):
@@ -32,6 +33,11 @@ class CVEvaluationSystem:
                     'case_management': 0.30,
                     'client_relations': 0.25,
                     'crisis_intervention': 0.20
+                },
+                'customer_service': {
+                    'customer_service': 0.40,
+                    'technical_skills': 0.20,
+                    'problem_solving': 0.15
                 },
                 'natural_resources': {
                     'field_experience': 0.35,
@@ -114,13 +120,6 @@ class CVEvaluationSystem:
                     'client_management': 0.15,
                     'process_improvement': 0.10
                 },
-                'customer_service': {
-                    'customer_relations': 0.35,
-                    'multilingual': 0.20,
-                    'problem_solving': 0.20,
-                    'technical_skills': 0.15,
-                    'teamwork': 0.10
-                },
                 'general': {
                     'experience': 0.30,
                     'education': 0.20,
@@ -128,6 +127,7 @@ class CVEvaluationSystem:
                 }
             }
         }
+        self.required_cv_fields = ['summary', 'experience', 'education', 'skills']
     
     def set_requirements(self, requirements):
         for key, value in requirements.items():
@@ -137,19 +137,40 @@ class CVEvaluationSystem:
                 else:
                     self.evaluation_criteria[key] = value
     
+    def _validate_cv_data(self, cv_data):
+        """Validate the structure of CV data"""
+        if not isinstance(cv_data, dict):
+            raise ValueError("CV data must be a dictionary")
+            
+        missing_fields = [field for field in self.required_cv_fields if field not in cv_data]
+        if missing_fields:
+            raise ValueError(f"Missing required CV fields: {', '.join(missing_fields)}")
+            
+        for field in ['experience', 'education', 'skills']:
+            if field in cv_data and not isinstance(cv_data[field], list):
+                raise ValueError(f"{field} must be a list")
+    
     def evaluate_multiple_cvs(self, cvs_data):
         reports = []
         for cv_id, cv_data in cvs_data.items():
-            industry = self._detect_industry(cv_data)
-            evaluation = self._evaluate_cv(cv_data, industry)
-            report = self._generate_report(evaluation, cv_data, industry)
-            meets_reqs = self._check_requirements(evaluation, industry)
-            reports.append({
-                'cv_id': cv_id,
-                'industry': industry,
-                'report': report,
-                'meets_requirements': meets_reqs
-            })
+            try:
+                self._validate_cv_data(cv_data)
+                industry = self._detect_industry(cv_data)
+                evaluation = self._evaluate_cv(cv_data, industry)
+                report = self._generate_report(evaluation, cv_data, industry)
+                meets_reqs = self._check_requirements(evaluation, industry)
+                reports.append({
+                    'cv_id': cv_id,
+                    'industry': industry,
+                    'report': report,
+                    'meets_requirements': meets_reqs
+                })
+            except ValueError as e:
+                logging.error(f"Error evaluating CV {cv_id}: {str(e)}")
+                reports.append({
+                    'cv_id': cv_id,
+                    'error': str(e)
+                })
         
         return {
             'individual_reports': reports,
@@ -243,11 +264,6 @@ class CVEvaluationSystem:
             'kpi': 1.5, 'sales performance': 1.5, 'conversion metrics': 1.5,
             'p&l': 1, 'gross margin': 1, 'direct sales': 1.5
         }
-        customer_service_keywords = {
-            'customer service': 3, 'client relations': 2, 'customer support': 2,
-            'call center': 1.5, 'problem resolution': 1.5, 'multilingual': 1.5,
-            'help desk': 1, 'client retention': 1, 'customer satisfaction': 1.5
-        }
         
         scores = {
             'finance': sum(weight for word, weight in finance_keywords.items() if word in text),
@@ -266,8 +282,7 @@ class CVEvaluationSystem:
             'entry_level_service': sum(weight for word, weight in entry_level_service_keywords.items() if word in text),
             'financial_services': sum(weight for word, weight in financial_services_keywords.items() if word in text),
             'entry_level_finance': sum(weight for word, weight in entry_level_finance_keywords.items() if word in text),
-            'bpo_operations': sum(weight for word, weight in bpo_operations_keywords.items() if word in text),
-            'customer_service': sum(weight for word, weight in customer_service_keywords.items() if word in text)
+            'bpo_operations': sum(weight for word, weight in bpo_operations_keywords.items() if word in text)
         }
         
         max_industry = max(scores, key=scores.get)
@@ -463,53 +478,39 @@ class CVEvaluationSystem:
         return round(total_months / 12, 1)
     
     def _parse_duration(self, duration_str):
-        if not duration_str:
-            return 0
-        
-        # Handle present case
-        if 'present' in duration_str.lower() or 'current' in duration_str.lower():
-            end_date = datetime.now()
-        else:
-            end_date = None
-        
-        # Try to parse date ranges (MM/YYYY to MM/YYYY or Month YYYY to Month YYYY)
-        date_pattern = r'(\d{1,2}/\d{4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{4})\s*to\s*(\d{1,2}/\d{4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{4}|present|current)'
-        dates = re.findall(date_pattern, duration_str, re.IGNORECASE)
-        
-        if dates:
-            try:
-                start_str = dates[0][0].replace(' ', '/')
-                end_str = dates[0][1].replace(' ', '/') if not end_date else 'present'
+        try:
+            if not duration_str:
+                return 0
                 
-                if '/' in start_str:
-                    start = datetime.strptime(start_str, '%m/%Y')
-                else:
-                    start = datetime.strptime(start_str, '%b/%Y')
+            # Handle present/current case
+            if 'present' in duration_str.lower() or 'current' in duration_str.lower():
+                end_date = datetime.now()
+            else:
+                end_date = None
+            
+            # Improved date parsing with dateutil
+            date_pattern = r'(\d{1,2}/\d{4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{4})'
+            dates = re.findall(date_pattern, duration_str, re.IGNORECASE)
+            
+            if len(dates) >= 2:
+                start = parser.parse(dates[0])
+                end = parser.parse(dates[1]) if not end_date else datetime.now()
+                return (end.year - start.year) * 12 + (end.month - start.month)
+            
+            # Fallback to simple year/month extraction
+            years_match = re.search(r'(\d+)\s*year', duration_str, re.IGNORECASE)
+            months_match = re.search(r'(\d+)\s*month', duration_str, re.IGNORECASE)
+            
+            total_months = 0
+            if years_match:
+                total_months += int(years_match.group(1)) * 12
+            if months_match:
+                total_months += int(months_match.group(1))
                 
-                if end_str.lower() in ['present', 'current']:
-                    end = datetime.now()
-                elif '/' in end_str:
-                    end = datetime.strptime(end_str, '%m/%Y')
-                else:
-                    end = datetime.strptime(end_str, '%b/%Y')
-                
-                delta = end - start
-                return delta.days // 30  # Approximate months
-            except:
-                pass
-
-        # Try to extract years
-        years_match = re.search(r'(\d+)\s*year', duration_str, re.IGNORECASE)
-        if years_match:
-            return int(years_match.group(1)) * 12
-        
-        # Try to extract months
-        months_match = re.search(r'(\d+)\s*month', duration_str, re.IGNORECASE)
-        if months_match:
-            return int(months_match.group(1))
-        
-        # Default to 1 year if can't parse
-        return 12
+            return total_months if total_months > 0 else 12  # Default to 1 year if can't parse
+        except Exception as e:
+            logging.warning(f"Error parsing duration '{duration_str}': {str(e)}")
+            return 12  # Fallback to 1 year
     
     def _get_highest_education(self, education_list):
         if not education_list:
@@ -602,6 +603,10 @@ class CVEvaluator:
     def __init__(self, criteria, industry):
         self.criteria = criteria
         self.industry = industry
+        # Pre-compile regex patterns
+        self.quantifiable_pattern = re.compile(r'\$\d+[MBK]?|\d+\s*(%|percent)|reduced by \d+', re.IGNORECASE)
+        self.gpa_pattern = re.compile(r'gpa\s*[:of]?\s*(\d\.\d+)', re.IGNORECASE)
+        # Convert keyword lists to sets for faster lookups
         self.positive_keywords = {
             'achieved', 'increased', 'improved', 'developed', 
             'led', 'managed', 'created', 'implemented', 
@@ -996,20 +1001,38 @@ class CVEvaluator:
     
     def _parse_duration(self, duration_str):
         try:
-            dates = re.findall(r'(\w+\s+\d{4}|\d{1,2}/\d{4})', duration_str)
-            if len(dates) == 2:
-                start = parser.parse(dates[0])
-                end = parser.parse(dates[1])
-            elif len(dates) == 1 and 'present' in duration_str.lower():
-                start = parser.parse(dates[0])
-                end = datetime.today()
-            else:
+            if not duration_str:
                 return 0
-
-            duration = (end.year - start.year) * 12 + (end.month - start.month)
-            return max(duration / 12, 0)
-        except Exception:
-            return 0
+                
+            # Handle present/current case
+            if 'present' in duration_str.lower() or 'current' in duration_str.lower():
+                end_date = datetime.now()
+            else:
+                end_date = None
+            
+            # Improved date parsing with dateutil
+            date_pattern = r'(\d{1,2}/\d{4}|(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{4})'
+            dates = re.findall(date_pattern, duration_str, re.IGNORECASE)
+            
+            if len(dates) >= 2:
+                start = parser.parse(dates[0])
+                end = parser.parse(dates[1]) if not end_date else datetime.now()
+                return (end.year - start.year) * 12 + (end.month - start.month)
+            
+            # Fallback to simple year/month extraction
+            years_match = re.search(r'(\d+)\s*year', duration_str, re.IGNORECASE)
+            months_match = re.search(r'(\d+)\s*month', duration_str, re.IGNORECASE)
+            
+            total_months = 0
+            if years_match:
+                total_months += int(years_match.group(1)) * 12
+            if months_match:
+                total_months += int(months_match.group(1))
+                
+            return total_months if total_months > 0 else 12  # Default to 1 year if can't parse
+        except Exception as e:
+            logging.warning(f"Error parsing duration '{duration_str}': {str(e)}")
+            return 12  # Fallback to 1 year
     
     # Add new evaluation methods for BPO operations industry
     def _evaluate_operations_management(self, cv_data):
@@ -1023,7 +1046,7 @@ class CVEvaluator:
             ' '.join([exp.get('description', '') for exp in cv_data.get('experience', [])])
         ]).lower()
         matches = sum(1 for term in ops_terms if term in text)
-        return min(100, matches * 25)
+        return (matches / len(ops_terms)) * 100 if ops_terms else 0
     
     def _evaluate_bpo_leadership(self, cv_data):
         leadership_terms = [
@@ -1036,7 +1059,7 @@ class CVEvaluator:
             ' '.join([exp.get('description', '') for exp in cv_data.get('experience', [])])
         ]).lower()
         matches = sum(1 for term in leadership_terms if term in text)
-        return min(100, matches * 20)
+        return (matches / len(leadership_terms)) * 100 if leadership_terms else 0
     
     def _evaluate_performance_metrics(self, cv_data):
         metric_terms = [
@@ -1049,19 +1072,6 @@ class CVEvaluator:
             ' '.join([exp.get('description', '') for exp in cv_data.get('experience', [])])
         ]).lower()
         matches = sum(1 for term in metric_terms if term in text)
-        return min(100, matches * 20)
-    
-    def _evaluate_client_management(self, cv_data):
-        client_terms = [
-            'client management', 'account management', 'client relations',
-            'stakeholder management', 'client retention', 'client satisfaction',
-            'service level', 'sla'
-        ]
-        text = ' '.join([
-            cv_data.get('summary', ''),
-            ' '.join([exp.get('description', '') for exp in cv_data.get('experience', [])])
-        ]).lower()
-        matches = sum(1 for term in client_terms if term in text)
         return min(100, matches * 20)
     
     def _evaluate_process_improvement(self, cv_data):
@@ -1148,16 +1158,18 @@ class CVEvaluator:
     
     def _evaluate_client_management(self, cv_data):
         client_terms = [
-            'client acquisition', 'relationship management',
-            'portfolio growth', 'cross-selling', 'retention',
-            'needs assessment', 'consultative'
+            'client management', 'account management', 'client relations',
+            'stakeholder management', 'client retention', 'client satisfaction',
+            'service level', 'sla', 'client acquisition', 'relationship management',
+            'portfolio growth', 'cross-selling', 'retention', 'needs assessment',
+            'consultative'
         ]
         text = ' '.join([
             cv_data.get('summary', ''),
             ' '.join([exp.get('description', '') for exp in cv_data.get('experience', [])])
         ]).lower()
         matches = sum(1 for term in client_terms if term in text)
-        return min(100, matches * 20)
+        return min(100, matches * 15)  # Reduced multiplier since we have more terms now
     
     def _evaluate_regulatory_compliance(self, cv_data):
         compliance_terms = [
@@ -1926,22 +1938,24 @@ class CVEvaluator:
         return (total / max_possible) * 100 if max_possible > 0 else 0
 
     def _evaluate_achievements(self, achievements):
-        if not achievements:
-            return 0
-        
-        total = 0
-        for ach in achievements:
-            score = 30  # Base score
+            if not achievements:
+                return 0
             
-            if re.search(r'\$\d+[MBK]?|\d+\s*(%|percent)|reduced by \d+', ach, re.IGNORECASE):
-                score += 30
+            total = 0
+            for ach in achievements:
+                score = 30  # Base score
+                
+                if self.quantifiable_pattern.search(ach):
+                    score += 30
+                
+                # Convert to lowercase once
+                ach_lower = ach.lower()
+                action_words = sum(1 for w in self.positive_keywords if w in ach_lower)
+                score += min(40, action_words * 10)
+                
+                total += min(100, score)
             
-            action_words = sum(1 for w in self.positive_keywords if w in ach.lower())
-            score += min(40, action_words * 10)
-            
-            total += min(100, score)
-        
-        return (total / len(achievements)) if achievements else 0
+            return (total / len(achievements)) if achievements else 0
     
     def _evaluate_keywords(self, cv_data):
         if not self.criteria['keywords']:
@@ -1986,89 +2000,93 @@ class CVEvaluator:
     def _generate_feedback(self, scores, cv_data):
         feedback = []
         
+        # Section completeness feedback
         if scores['section_completeness'] < 100:
             missing = [s for s in self.criteria['required_sections'] 
                     if not cv_data.get(s) or (isinstance(cv_data[s], (list, str)) and not cv_data[s])]
             if missing:
                 feedback.append(
-                    f"Your CV is missing some critical sections: {', '.join(missing)}. "
-                    f"It is important to include all major sections such as Summary, Experience, Education, and Skills "
-                    f"to give a complete view of your profile. Recruiters expect these sections to quickly assess your fit. "
-                    f"Consider carefully reviewing your resume template and ensuring all essential sections are covered. "
-                    f"Missing sections can make your resume feel incomplete or less professional."
+                    f"CV Structure Issue: The following critical sections are missing or incomplete: {', '.join(missing)}. "
+                    f"A complete CV must include all major sections (Summary, Experience, Education, Skills) to properly showcase "
+                    f"your qualifications. Missing sections create gaps in your professional narrative and may lead to automatic "
+                    f"rejection by applicant tracking systems."
                 )
         
-        if scores['experience_quality'] < 70:
-            feedback.append(
-                "Your experience section needs improvement. Try to highlight specific accomplishments, "
-                "mention quantifiable results (e.g., 'Increased sales by 20%'), and use active, strong verbs. "
-                "Instead of just listing duties, focus on the impact you had in your previous roles. "
-                "Recruiters value clear evidence of success. Also, ensure consistent formatting for job titles, dates, and companies."
+        # Experience quality feedback
+        exp_feedback = []
+        if scores['experience_quality'] < 60:
+            exp_feedback.extend([
+                "Experience Section Needs Significant Improvement: Your work history lacks quantifiable achievements and strong action verbs. ",
+                "Each position should demonstrate impact through metrics (e.g., 'Increased sales by 30%' or 'Reduced processing time by 2 hours'). ",
+                "Current descriptions read as job duties rather than accomplishments. Use the CAR (Challenge-Action-Result) method to reframe."
+            ])
+        elif scores['experience_quality'] < 75:
+            exp_feedback.extend([
+                "Experience Section Requires Enhancement: While you have some good elements, many entries lack measurable outcomes. ",
+                "For each role, include 1-2 key achievements with numbers or percentages to demonstrate impact. ",
+                "Replace passive language ('responsible for') with action verbs ('spearheaded', 'transformed')."
+            ])
+        else:
+            exp_feedback.append(
+                "Experience Section Strength: Your work history effectively showcases progressive responsibility and measurable achievements. "
+                "The quantifiable results and clear career progression make this a strong section."
             )
-        elif scores['experience_quality'] >= 85:
-            feedback.append(
-                "Your experience section is a major strength. You have successfully included strong, quantifiable results "
-                "and framed your achievements with action-driven language. "
-                "Maintaining this focus on results and clarity will position you very well with recruiters. "
-                "You may still consider fine-tuning bullet points for even sharper readability."
-            )
+        feedback.extend(exp_feedback)
         
+        # Education quality feedback
         if scores['education_quality'] < 60:
-            feedback.append(
-                "The education section could be strengthened. Make sure to include your degree, major, university name, and graduation date. "
-                "If you have honors, scholarships, or relevant coursework, be sure to mention them. "
-                "Even if your education is not recent, showcasing it professionally adds to credibility. "
-                "Consider using consistent formatting for clarity."
-            )
+            feedback.extend([
+                "Education Section Deficiency: Critical information like degree type, institution name, or graduation year appears missing. ",
+                "Include all relevant details: full degree name, university, graduation date (or expected date), honors, and GPA if above 3.0. ",
+                "For recent graduates, consider adding relevant coursework or academic projects."
+            ])
         elif scores['education_quality'] >= 80:
             feedback.append(
-                "Your educational background is impressive and clearly communicated. "
-                "Listing relevant honors, projects, or coursework would make it even stronger. "
-                "Ensure formatting remains clean and consistent for maximum impact. "
-                "Consider adding certifications if relevant to the target job."
+                "Education Section Asset: Your academic credentials are clearly presented with appropriate details. "
+                "The inclusion of honors/special achievements strengthens this section."
             )
         
+        # Skills relevance feedback
+        skills_feedback = []
         if scores['skills_relevance'] < 60:
-            feedback.append(
-                "Your skills section could be more aligned with the industry you are targeting. "
-                "Prioritize listing technical skills, software, and industry-specific competencies. "
-                "Avoid overly generic terms and instead match your skills to the job descriptions you're applying for. "
-                "Grouping skills into categories (Technical, Communication, Leadership) can also improve readability."
-            )
+            skills_feedback.extend([
+                "Skills Mismatch: Your listed skills don't sufficiently align with typical requirements for this industry. ",
+                f"For {self.industry} roles, prioritize: " + ', '.join(self.industry_positive_keywords.get(self.industry, [])) + ". ",
+                "Remove outdated or irrelevant skills, and group remaining ones into logical categories (Technical, Professional, etc.)."
+            ])
         elif scores['skills_relevance'] >= 80:
-            feedback.append(
-                "Your skills section is very strong, showing a direct match to industry needs. "
-                "Continue tailoring your skills list for each application to maximize relevance. "
-                "You might also consider adding a short technical or tools section if applying for specialized roles."
+            skills_feedback.append(
+                "Skills Section Strength: Your skills are well-matched to industry requirements and presented clearly. "
+                "The inclusion of both technical and soft skills creates a balanced profile."
             )
+        feedback.extend(skills_feedback)
         
+        # Achievements feedback
         if scores['achievements_quality'] < 50:
-            feedback.append(
-                "Your achievements could be made more impactful by using numbers, percentages, or clear results. "
-                "Phrases like 'Saved 10% annual costs' or 'Increased customer satisfaction by 15%' stand out strongly. "
-                "Try to frame each accomplishment as a challenge, action, and result (CAR method). "
-                "This makes your contributions immediately measurable and valuable to employers."
-            )
+            feedback.extend([
+                "Achievements Gap: Your accomplishments lack measurable impact or are missing entirely. ",
+                "Transform statements like 'Managed team' to 'Led 5-person team that achieved 95% customer satisfaction (industry avg: 82%)'. ",
+                "Include awards, certifications, publications, or other professional recognitions."
+            ])
         elif scores['achievements_quality'] >= 75:
             feedback.append(
-                "Your achievements are a highlight of your resume. "
-                "Quantifiable results and clear outcomes create a strong impression. "
-                "Continue emphasizing measurable results in all future updates to maintain this high standard."
+                "Achievements Highlight: Your quantifiable accomplishments effectively demonstrate your professional impact. "
+                "The specific metrics and clear outcomes make your value proposition compelling."
             )
         
+        # Structure feedback
         if scores['structure_quality'] < 60:
-            feedback.append(
-                "The structure of your CV could be improved. Use clear headings, bullet points, and logical section breaks. "
-                "Avoid large text blocks; make content skimmable. "
-                "Consistent use of fonts, alignment, and spacing dramatically improves first impressions. "
-                "A clean structure can often be the difference between getting shortlisted or ignored."
-            )
+            feedback.extend([
+                "Formatting Issues: Your CV's structure hinders readability. Common problems include: ",
+                "- Inconsistent bullet point formatting ",
+                "- Dense text blocks exceeding 3-4 lines ",
+                "- Lack of clear section boundaries ",
+                "Use consistent formatting, ample white space, and clear headings for better scannability."
+            ])
         elif scores['structure_quality'] >= 80:
             feedback.append(
-                "Your CV is well-structured and easy to read. Clear headings and bullet points make it skimmable, "
-                "which recruiters appreciate. "
-                "Ensure you continue to keep formatting clean and avoid overcrowding information. "
-                "Small improvements like optimizing margin spacing could still add polish."
+                "Professional Presentation: Your CV's clean layout and logical organization make it easy to review. "
+                "The consistent formatting and appropriate use of white space enhance readability."
             )
         
         # Industry-specific feedback
@@ -2572,4 +2590,4 @@ class CVEvaluator:
             if scores.get('performance_metrics_score', 0) < 50:
                 weaknesses.append("performance metrics and improvement initiatives are poorly represented")
 
-        return feedback if feedback else ["CV looks good overall"]
+        return feedback if feedback else ["CV meets basic standards but could benefit from professional refinement"]
