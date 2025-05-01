@@ -1,3 +1,5 @@
+// C:\Users\abdul\Downloads\FinalYearProject-main\FinalYearProject-main\Frontend\src\pages\email\EmailIntegration.jsx
+
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -5,13 +7,14 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import { Calendar, Filter, Download, Eye, Trash2 } from "lucide-react";
+import { Calendar, Filter, Download, Eye, Trash2, Mail, Search } from "lucide-react";
 import React, { useState } from "react";
 
 const EmailIntegration = () => {
-  const [dateRange, setDateRange] = useState({
+  const [filterParams, setFilterParams] = useState({
     startDate: "",
     endDate: "",
+    subject: "",
   });
 
   const [emails, setEmails] = useState([
@@ -31,15 +34,37 @@ const EmailIntegration = () => {
       hasResume: true,
       status: "imported",
     },
-    // Add more sample emails
+    {
+      id: 3,
+      sender: "michael.brown@example.com",
+      subject: "Job Application - UX Designer",
+      date: "2024-01-27",
+      hasResume: true,
+      status: "pending",
+    },
+    {
+      id: 4,
+      sender: "sarah.wilson@example.com",
+      subject: "Frontend Developer Role - Resume Attached",
+      date: "2024-01-28",
+      hasResume: true,
+      status: "pending",
+    },
   ]);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilterParams(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleDateFilter = () => {
     // Implement date filtering logic
+    console.log("Filtering with params:", filterParams);
   };
 
   const handleImportAll = () => {
     // Implement bulk import logic
+    console.log("Importing all resumes");
   };
 
   return (
@@ -58,18 +83,17 @@ const EmailIntegration = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {/* Date Filter Section */}
-          <div className="mb-6 flex gap-4 items-end">
+          {/* Filter Section */}
+          <div className="mb-6 flex flex-wrap gap-4 items-end">
             <div className="space-y-2">
               <label className="text-sm font-medium">Start Date</label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <input
                   type="date"
-                  value={dateRange.startDate}
-                  onChange={(e) =>
-                    setDateRange({ ...dateRange, startDate: e.target.value })
-                  }
+                  name="startDate"
+                  value={filterParams.startDate}
+                  onChange={handleFilterChange}
                   className="pl-10 p-2 border rounded-md"
                 />
               </div>
@@ -80,11 +104,24 @@ const EmailIntegration = () => {
                 <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <input
                   type="date"
-                  value={dateRange.endDate}
-                  onChange={(e) =>
-                    setDateRange({ ...dateRange, endDate: e.target.value })
-                  }
+                  name="endDate"
+                  value={filterParams.endDate}
+                  onChange={handleFilterChange}
                   className="pl-10 p-2 border rounded-md"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email Subject</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  name="subject"
+                  value={filterParams.subject}
+                  onChange={handleFilterChange}
+                  className="pl-10 p-2 border rounded-md"
+                  placeholder="Filter by subject keywords"
                 />
               </div>
             </div>
@@ -173,9 +210,6 @@ const EmailIntegration = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Resume Preview Modal */}
-      {/* Add a modal component for resume preview */}
     </div>
   );
 };

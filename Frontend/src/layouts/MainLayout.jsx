@@ -1,3 +1,5 @@
+// C:\Users\abdul\Downloads\FinalYearProject-main\FinalYearProject-main\Frontend\src\layouts\MainLayout.jsx
+
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -8,20 +10,24 @@ import {
   Settings,
   Bell,
   User,
-  MessageSquare,
   ChevronDown,
+  ClipboardList,
+  Sliders,
+  PieChart,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 
 const MainLayout = ({ children }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const location = useLocation();
-  
+
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart, path: "/" },
     { id: "email", label: "Email Integration", icon: Mail, path: "/email-integration" },
     { id: "resumes", label: "Resume Management", icon: FileText, path: "/manage-resumes" },
+    { id: "criteria", label: "Setup Criteria", icon: Sliders, path: "/setup-criteria" },
     { id: "calendar", label: "Interview Scheduler", icon: Calendar, path: "/interview-scheduler" },
+    { id: "reports", label: "Reports", icon: PieChart, path: "/reports" },
     { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
   ];
 
@@ -100,23 +106,6 @@ const MainLayout = ({ children }) => {
               </Link>
             ))}
           </nav>
-          {/* Team Chat Section */}
-          <div className="absolute bottom-0 w-full p-4 border-t bg-white">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold">Team Chat</h3>
-              <MessageSquare className="h-4 w-4 text-gray-500" />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm">Sarah Smith (Online)</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
-                <span className="text-sm">Mike Johnson (Offline)</span>
-              </div>
-            </div>
-          </div>
         </aside>
 
         {/* Main Content */}
