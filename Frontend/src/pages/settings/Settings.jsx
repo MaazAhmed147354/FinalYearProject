@@ -1,5 +1,3 @@
-// C:\Users\abdul\Downloads\FinalYearProject-main\FinalYearProject-main\Frontend\src\pages\settings\Settings.jsx
-
 import React, { useState } from "react";
 import {
   Card,
@@ -90,7 +88,10 @@ const Settings = () => {
   const handleNotificationSave = () => {
     // Save notification settings
     setSaveStatus({ ...saveStatus, notifications: "success" });
-    setTimeout(() => setSaveStatus({ ...saveStatus, notifications: null }), 3000);
+    setTimeout(
+      () => setSaveStatus({ ...saveStatus, notifications: null }),
+      3000
+    );
   };
 
   return (
@@ -111,7 +112,9 @@ const Settings = () => {
                     <input
                       type="text"
                       value={user.name}
-                      onChange={(e) => setUser({ ...user, name: e.target.value })}
+                      onChange={(e) =>
+                        setUser({ ...user, name: e.target.value })
+                      }
                       className="pl-10 w-full p-2 border rounded-md"
                     />
                   </div>
@@ -123,7 +126,9 @@ const Settings = () => {
                     <input
                       type="email"
                       value={user.email}
-                      onChange={(e) => setUser({ ...user, email: e.target.value })}
+                      onChange={(e) =>
+                        setUser({ ...user, email: e.target.value })
+                      }
                       className="pl-10 w-full p-2 border rounded-md"
                     />
                   </div>
@@ -145,16 +150,18 @@ const Settings = () => {
                   <input
                     type="text"
                     value={user.department}
-                    onChange={(e) => setUser({ ...user, department: e.target.value })}
+                    onChange={(e) =>
+                      setUser({ ...user, department: e.target.value })
+                    }
                     className="w-full p-2 border rounded-md"
                   />
                 </div>
               </div>
 
               <div className="flex justify-end">
-                <Button 
-                  onClick={handleProfileSave} 
-                  className="bg-blue-500 hover:bg-blue-600"
+                <Button
+                  onClick={handleProfileSave}
+                  className="bg-blue-500 hover:bg-blue-600 p-2"
                 >
                   {saveStatus.profile === "success" ? (
                     <Check className="w-4 h-4 mr-2" />
@@ -226,7 +233,9 @@ const Settings = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Confirm New Password</label>
+                <label className="text-sm font-medium">
+                  Confirm New Password
+                </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <input
@@ -258,16 +267,18 @@ const Settings = () => {
               )}
 
               <div className="flex justify-end">
-                <Button 
-                  onClick={handlePasswordSave} 
-                  className="bg-blue-500 hover:bg-blue-600"
+                <Button
+                  onClick={handlePasswordSave}
+                  className="bg-blue-500 hover:bg-blue-600 p-2"
                 >
                   {saveStatus.password === "success" ? (
                     <Check className="w-4 h-4 mr-2" />
                   ) : (
                     <Save className="w-4 h-4 mr-2" />
                   )}
-                  {saveStatus.password === "success" ? "Password Updated" : "Update Password"}
+                  {saveStatus.password === "success"
+                    ? "Password Updated"
+                    : "Update Password"}
                 </Button>
               </div>
             </div>
@@ -284,11 +295,13 @@ const Settings = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Bell className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm font-medium">Email Notifications</span>
+                  <span className="text-sm font-medium">
+                    Email Notifications
+                  </span>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     name="emailNotifications"
                     className="sr-only peer"
                     checked={notificationSettings.emailNotifications}
@@ -304,8 +317,8 @@ const Settings = () => {
                   <span className="text-sm font-medium">Applicant Alerts</span>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     name="applicantAlerts"
                     className="sr-only peer"
                     checked={notificationSettings.applicantAlerts}
@@ -318,11 +331,13 @@ const Settings = () => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <Bell className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm font-medium">Interview Reminders</span>
+                  <span className="text-sm font-medium">
+                    Interview Reminders
+                  </span>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     name="interviewReminders"
                     className="sr-only peer"
                     checked={notificationSettings.interviewReminders}
@@ -338,8 +353,8 @@ const Settings = () => {
                   <span className="text-sm font-medium">System Updates</span>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     name="systemUpdates"
                     className="sr-only peer"
                     checked={notificationSettings.systemUpdates}
@@ -350,16 +365,18 @@ const Settings = () => {
               </div>
 
               <div className="flex justify-end">
-                <Button 
-                  onClick={handleNotificationSave} 
-                  className="bg-blue-500 hover:bg-blue-600"
+                <Button
+                  onClick={handleNotificationSave}
+                  className="bg-blue-500 hover:bg-blue-600 p-2"
                 >
                   {saveStatus.notifications === "success" ? (
                     <Check className="w-4 h-4 mr-2" />
                   ) : (
                     <Save className="w-4 h-4 mr-2" />
                   )}
-                  {saveStatus.notifications === "success" ? "Saved" : "Save Preferences"}
+                  {saveStatus.notifications === "success"
+                    ? "Saved"
+                    : "Save Preferences"}
                 </Button>
               </div>
             </div>

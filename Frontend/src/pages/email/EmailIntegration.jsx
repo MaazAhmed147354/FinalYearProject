@@ -1,5 +1,3 @@
-// C:\Users\abdul\Downloads\FinalYearProject-main\FinalYearProject-main\Frontend\src\pages\email\EmailIntegration.jsx
-
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -75,7 +73,7 @@ const EmailIntegration = () => {
             <span>Email Integration</span>
             <Button
               onClick={handleImportAll}
-              className="bg-blue-500 hover:bg-blue-600"
+              className="hover:text-gray-500"
             >
               <Download className="w-4 h-4 mr-2" />
               Import All Resumes
@@ -155,7 +153,7 @@ const EmailIntegration = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {emails.map((email) => (
-                  <tr key={email.id}>
+                  <tr key={email.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         {email.sender}

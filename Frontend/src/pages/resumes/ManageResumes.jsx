@@ -1,5 +1,3 @@
-// C:\Users\abdul\Downloads\FinalYearProject-main\FinalYearProject-main\Frontend\src\pages\resumes\ManageResumes.jsx
-
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -279,7 +277,7 @@ const ManageResumes = () => {
                   <Filter className="w-4 h-4 mr-2" />
                   Apply Filters
                 </Button>
-                <Button className="w-full" variant="outline">
+                <Button className="w-full hover:text-gray-400" variant="outline">
                   <Download className="w-4 h-4 mr-2" />
                   Export Selected
                 </Button>
@@ -346,14 +344,14 @@ const ManageResumes = () => {
                     </div>
 
                     <div className="mt-4 flex justify-end space-x-2">
-                      <Button variant="outline" size="sm">
+                      <Button className="hover:text-gray-400" variant="outline" size="sm">
                         <Eye className="w-4 h-4 mr-1" />
                         View
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-blue-600"
+                        className="text-blue-600 hover:text-blue-400"
                         onClick={() => openReportModal(resume.candidateName, resume.reportData)}
                       >
                         <ClipboardList className="w-4 h-4 mr-1" />
@@ -362,7 +360,7 @@ const ManageResumes = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-green-600"
+                        className="text-green-600 hover:text-green-400"
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
                         Shortlist
@@ -370,12 +368,12 @@ const ManageResumes = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-red-600"
+                        className="text-red-600 hover:text-red-400"
                       >
                         <XCircle className="w-4 h-4 mr-1" />
                         Reject
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button className="hover:text-gray-400" variant="outline" size="sm">
                         <MessageSquare className="w-4 h-4 mr-1" />
                         Add Note
                       </Button>

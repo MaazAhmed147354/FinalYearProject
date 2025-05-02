@@ -104,7 +104,7 @@ const Reports = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Application Trends</CardTitle>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="underline underline-offset-4 hover:underline-offset-2">
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
@@ -141,7 +141,7 @@ const Reports = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Sourcing Channels</CardTitle>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="underline underline-offset-4 hover:underline-offset-2">
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
@@ -183,7 +183,7 @@ const Reports = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Department-wise Hiring</CardTitle>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="underline underline-offset-4 hover:underline-offset-2">
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
@@ -226,7 +226,7 @@ const Reports = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Time to Hire Analysis</CardTitle>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="underline underline-offset-4 hover:underline-offset-2">
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>

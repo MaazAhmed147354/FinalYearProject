@@ -1,5 +1,3 @@
-// C:\Users\abdul\Downloads\FinalYearProject-main\FinalYearProject-main\Frontend\src\pages\dashboard\Dashboard.jsx
-
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -213,13 +211,13 @@ const Dashboard = () => {
         {/* Action Buttons */}
         <div className="flex space-x-4 mb-8">
           <Button 
-            className="bg-blue-500 hover:bg-blue-600"
+            className="bg-blue-500 hover:bg-blue-600 p-2"
             onClick={() => setIsCreateJobModalOpen(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
             Create Job Opening
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" className="hover:text-gray-500">
             <Upload className="w-4 h-4 mr-2" />
             Import Resumes
           </Button>
@@ -297,7 +295,7 @@ const Dashboard = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {jobOpenings.map((job) => (
-                    <tr key={job.id}>
+                    <tr key={job.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
                           {job.title}

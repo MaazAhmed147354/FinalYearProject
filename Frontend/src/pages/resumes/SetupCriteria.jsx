@@ -91,7 +91,7 @@ const SetupCriteria = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-red-600"
+                          className="text-red-600 hover:text-red-400"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -143,6 +143,7 @@ const SetupCriteria = () => {
                       </label>
                       <Button
                         onClick={handleAddSkill}
+                        className="hover:text-gray-400"
                         variant="outline"
                         size="sm"
                       >
@@ -208,8 +209,8 @@ const SetupCriteria = () => {
                 </div>
 
                 <div className="flex justify-end space-x-4">
-                  <Button variant="outline">Reset</Button>
-                  <Button className="bg-blue-500 hover:bg-blue-600">
+                  <Button className="hover:underline underline-offset-2" variant="outline">Reset</Button>
+                  <Button className="bg-blue-500 hover:bg-blue-600 p-2">
                     <Save className="w-4 h-4 mr-2" />
                     Save Criteria
                   </Button>

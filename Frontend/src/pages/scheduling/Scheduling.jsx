@@ -185,7 +185,7 @@ const InterviewScheduler = () => {
                   </div>
                 </div>
 
-                <Button className="w-full bg-blue-500 hover:bg-blue-600">
+                <Button className="w-full p-2 py-[13px] bg-blue-500 hover:bg-blue-600">
                   Schedule Interview
                 </Button>
               </form>
@@ -234,12 +234,12 @@ const InterviewScheduler = () => {
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button variant="outline" size="sm" className="flex-1 hover:underline underline-offset-2">
                         <Mail className="w-4 h-4 mr-2" />
                         Send Reminder
                       </Button>
                       {interview.status === "pending" && (
-                        <Button variant="outline" size="sm" className="flex-1">
+                        <Button variant="outline" size="sm" className="flex-1 hover:text-gray-400">
                           <CheckCircle className="w-4 h-4 mr-2" />
                           Confirm
                         </Button>
