@@ -2,8 +2,9 @@
 
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
+const Email = require('./emailModel');
 
-const User = sequelize.define('User', {
+const Candidate = sequelize.define('Candidate', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -16,18 +17,17 @@ const User = sequelize.define('User', {
   email: {
     type: DataTypes.STRING(100),
     allowNull: false,
-    unique: true,
   },
-  password_hash: {
-    type: DataTypes.STRING(255),
-    allowNull: false,
+  phone: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
   },
-  role: {
-    type: DataTypes.ENUM('hr', 'department'),
-    allowNull: false,
-  },
-  department: {
+  location: {
     type: DataTypes.STRING(100),
+    allowNull: true,
+  },
+  source_email_id: {
+    type: DataTypes.INTEGER,
     allowNull: true,
   },
   created_at: {
@@ -40,8 +40,11 @@ const User = sequelize.define('User', {
     onUpdate: DataTypes.NOW,
   }
 }, {
-  tableName: 'users',
-  timestamps: false, // We're manually managing timestamps
+  tableName: 'candidates',
+  timestamps: false,
 });
 
-module.exports = User;
+// Define associations
+Candidate.belongsTo(Email, { foreignKey: 'source_email_id', as: 'sourceEmail' });
+
+module.exports = Candidate;

@@ -1,51 +1,77 @@
-const { Sequelize, DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-const Users = require('./usersModel'); // Import the Users model
+"use strict";
 
-const Jobs = sequelize.define('Jobs', {
-    id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../config/database');
+const User = require('./userModel');
+
+const Job = sequelize.define('Job', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
+  title: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+  },
+  description: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+  },
+  department: {
+    type: DataTypes.STRING(100),
+    allowNull: false,
+  },
+  required_skills: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    get() {
+      const rawValue = this.getDataValue('required_skills');
+      return rawValue ? JSON.parse(rawValue) : [];
     },
-    hr_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-    title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    description: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-    },
-    required_skills: {
-        type: DataTypes.JSON,
-        allowNull: false,
-    },
-    min_experience: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-    },
-    education: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    status: {
-        type: DataTypes.ENUM('Open', 'Closed'),
-        defaultValue: 'Open',
-    },
-    created_at: {
-        type: DataTypes.DATE,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
-    },
+    set(value) {
+      this.setDataValue('required_skills', JSON.stringify(value));
+    }
+  },
+  qualifications: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  experience: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  start_date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  end_date: {
+    type: DataTypes.DATE,
+    allowNull: false,
+  },
+  status: {
+    type: DataTypes.ENUM('open', 'closed'),
+    defaultValue: 'open',
+  },
+  created_by: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  created_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  updated_at: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+    onUpdate: DataTypes.NOW,
+  }
 }, {
-    tableName: 'jobs',
-    timestamps: false, // Disable automatic timestamps
+  tableName: 'job_openings',
+  timestamps: false, // We're manually managing timestamps
 });
 
 // Define associations
-Jobs.belongsTo(Users, { foreignKey: 'hr_id', as: 'hr' }); // Associate Jobs with Users (HR)
+Job.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
 
-module.exports = Jobs;
+module.exports = Job;
