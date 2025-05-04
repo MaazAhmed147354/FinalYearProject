@@ -1,3 +1,5 @@
+"use strict";
+
 /**
  * responseHelper.js
  * This module provides helper functions for generating standardized API responses.
@@ -34,7 +36,7 @@ const errorResponse = (statusCode = 500, message = 'Internal Server Error', erro
         body: JSON.stringify({
             success: false,
             message,
-            error: errorDetails,  // Include error details if provided
+            error: errorDetails,
         }),
     };
 };
@@ -50,21 +52,52 @@ const validationErrorResponse = (validationErrors = {}) => {
         body: JSON.stringify({
             success: false,
             message: 'Validation errors occurred',
-            errors: validationErrors,  // Include validation errors
+            errors: validationErrors,
         }),
     };
 };
 
 /**
  * Generates a 404 Not Found response.
+ * @param {string} message - A message to include in the response (optional)
  * @returns {object} - The structured 404 error response object
  */
-const notFoundResponse = () => {
+const notFoundResponse = (message = 'Resource not found') => {
     return {
         statusCode: 404,
         body: JSON.stringify({
             success: false,
-            message: 'Resource not found',
+            message,
+        }),
+    };
+};
+
+/**
+ * Generates a 401 Unauthorized response.
+ * @param {string} message - A message to include in the response (optional)
+ * @returns {object} - The structured 401 unauthorized response object
+ */
+const unauthorizedResponse = (message = 'Unauthorized') => {
+    return {
+        statusCode: 401,
+        body: JSON.stringify({
+            success: false,
+            message,
+        }),
+    };
+};
+
+/**
+ * Generates a 403 Forbidden response.
+ * @param {string} message - A message to include in the response (optional)
+ * @returns {object} - The structured 403 forbidden response object
+ */
+const forbiddenResponse = (message = 'Forbidden') => {
+    return {
+        statusCode: 403,
+        body: JSON.stringify({
+            success: false,
+            message,
         }),
     };
 };
@@ -81,7 +114,7 @@ const conflictResponse = (message = 'Conflict occurred', conflictDetails = {}) =
         body: JSON.stringify({
             success: false,
             message,
-            details: conflictDetails,  // Include conflict details if provided
+            details: conflictDetails,
         }),
     };
 };
@@ -91,5 +124,7 @@ module.exports = {
     errorResponse,
     validationErrorResponse,
     notFoundResponse,
-    conflictResponse, 
+    unauthorizedResponse,
+    forbiddenResponse,
+    conflictResponse,
 };
