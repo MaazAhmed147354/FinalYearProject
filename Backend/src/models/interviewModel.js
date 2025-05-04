@@ -1,10 +1,10 @@
 "use strict";
 
 const { DataTypes } = require('sequelize');
-const { sequelize } = require('../config/database');
+const sequelize = require('../config/database');
 const Resume = require('./resumeModel');
-const Job = require('./jobModel');
-const User = require('./userModel');
+const Job = require('./jobsModel');
+const User = require('./usersModel');
 
 const Interview = sequelize.define('Interview', {
   id: {

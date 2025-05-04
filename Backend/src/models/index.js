@@ -1,8 +1,8 @@
 "use strict";
 
-const { sequelize } = require('../config/database');
-const User = require('./userModel');
-const Job = require('./jobModel');
+const sequelize  = require('../config/database');
+const User = require('./usersModel');
+const Job = require('./jobsModel');
 const Email = require('./emailModel');
 const Candidate = require('./candidateModel');
 const Resume = require('./resumeModel');

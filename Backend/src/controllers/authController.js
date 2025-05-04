@@ -16,7 +16,7 @@ exports.loginUser = async (event) => {
     
     // Validate required fields
     if (!body.email || !body.password) {
-      return responseHelper.error(400, 'Email and password are required');
+      return responseHelper.errorResponse(400, 'Email and password are required');
     }
     
     // Attempt login
@@ -50,10 +50,10 @@ exports.loginUser = async (event) => {
     
     // Handle specific errors
     if (error.message === 'User not found' || error.message === 'Invalid password') {
-      return responseHelper.error(401, 'Invalid email or password');
+      return responseHelper.errorResponse(401, 'Invalid email or password');
     }
     
-    return responseHelper.error(500, 'Internal Server Error', error.message);
+    return responseHelper.errorResponse(500, 'Internal Server Error', error.message);
   }
 };
 
@@ -69,23 +69,23 @@ exports.registerUser = async (event) => {
     
     // Validate required fields
     if (!body.name || !body.email || !body.password || !body.role) {
-      return responseHelper.error(400, 'Name, email, password, and role are required');
+      return responseHelper.errorResponse(400, 'Name, email, password, and role are required');
     }
     
     // Register new user
     const user = await authService.registerUser(body);
     
     // Return success
-    return responseHelper.success(201, 'User registered successfully', user);
+    return responseHelper.successResponse(201, 'User registered successfully', user);
   } catch (error) {
     console.error('Error in registerUser controller:', error);
     
     // Handle specific errors
     if (error.message === 'Email already in use') {
-      return responseHelper.error(409, 'Email already in use');
+      return responseHelper.errorResponse(409, 'Email already in use');
     }
     
-    return responseHelper.error(500, 'Internal Server Error', error.message);
+    return responseHelper.errorResponse(500, 'Internal Server Error', error.message);
   }
 };
 
@@ -128,7 +128,7 @@ exports.logoutUser = async (event) => {
     };
   } catch (error) {
     console.error('Error in logoutUser controller:', error);
-    return responseHelper.error(500, 'Internal Server Error', error.message);
+    return responseHelper.errorResponse(500, 'Internal Server Error', error.message);
   }
 };
 
@@ -144,14 +144,14 @@ exports.checkAuth = async (event) => {
     const token = cookies.token;
     
     if (!token) {
-      return responseHelper.error(401, 'Not authenticated');
+      return responseHelper.errorResponse(401, 'Not authenticated');
     }
     
     // Verify token
     const decoded = await authService.verifyToken(token);
     
     // Return user info
-    return responseHelper.success(200, 'Authenticated', {
+    return responseHelper.successResponse(200, 'Authenticated', {
       isAuthenticated: true,
       user: {
         id: decoded.id,
@@ -161,6 +161,6 @@ exports.checkAuth = async (event) => {
     });
   } catch (error) {
     console.error('Error in checkAuth controller:', error);
-    return responseHelper.error(401, 'Not authenticated');
+    return responseHelper.errorResponse(401, 'Not authenticated');
   }
 };
