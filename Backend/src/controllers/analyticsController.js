@@ -30,3 +30,13 @@ exports.getInterviewAnalytics = async (event) => {
     return responseHelper.error(500, "Error getting interview analytics", error.message);
   }
 };
+
+exports.getRecruitmentFunnelAnalytics = async (event) => {
+  try {
+    const analytics = await analyticsService.getRecruitmentFunnelAnalytics();
+    return responseHelper.success(200, analytics);
+  } catch (error) {
+    console.error("Error in getRecruitmentFunnelAnalytics controller:", error);
+    return responseHelper.error(500, "Error getting recruitment funnel analytics", error.message);
+  }
+};

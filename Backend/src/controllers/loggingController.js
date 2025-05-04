@@ -1,10 +1,10 @@
-const loginService = require("../services/loggingService");
+const loggingService = require("../services/loggingService");
 const responseHelper = require("../utils/responseHelper");
 
 exports.loginUser = async (event) => {
   try {
     const body = JSON.parse(event.body);
-    const response = await loginService.loginUser(body);
+    const response = await loggingService.loginUser(body);
 
     return response;
   } catch (error) {
