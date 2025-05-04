@@ -1,44 +1,697 @@
 service: my-serverless-service
 provider:
   name: aws
-  runtime: nodejs12.x
+  runtime: nodejs18.x
+  # stage: ${opt:stage, 'dev'}
+  # region: ${opt:region, 'us-east-1'}
+  # environment:
+  #   DB_HOST: ${env:DB_HOST, 'localhost'}
+  #   DB_NAME: ${env:DB_NAME, 'smart_resume_parser'}
+  #   DB_USER: ${env:DB_USER, 'root'}
+  #   DB_PASSWORD: ${env:DB_PASSWORD, 'root'}
+  #   JWT_SECRET: ${env:JWT_SECRET, 'your-secret-key'}
+
 functions:
   hello:
-    handler: handler.hello
+    handler: src/handlers/helloHandler.hello
+    timeout: 30
     events:
       - http:
           path: hello
           method: get
-
-  # Logging Functions    
+          cors:
+            origin: 'http://localhost:3000'
+            headers:
+              - Content-Type
+              - X-Custom-Header
+  
+  # Auth Functions
   loginUser:
-    handler: src/handlers/loggingHandler.loginUser
+    handler: src/handlers/authHandler.loginUser
     timeout: 30
     events:
       - http:
-          path: loginUser
+          path: auth/login
           method: post
           cors:
-            origin: "http://localhost:3001"
+            origin: "http://localhost:3000"
             headers:
               - Content-Type
               - X-Custom-Header
-      
+            allowCredentials: true
+
+  registerUser:
+    handler: src/handlers/authHandler.registerUser
+    timeout: 30
+    events:
+      - http:
+          path: auth/register
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
   logoutUser:
-    handler: src/handlers/loggingHandler.logoutUser
+    handler: src/handlers/authHandler.logoutUser
     timeout: 30
     events:
       - http:
-          path: logoutUser
+          path: auth/logout
           method: post
           cors:
-            origin: "http://localhost:3001"
+            origin: "http://localhost:3000"
             headers:
               - Content-Type
               - X-Custom-Header
+            allowCredentials: true
+
+  checkAuth:
+    handler: src/handlers/authHandler.checkAuth
+    timeout: 30
+    events:
+      - http:
+          path: auth/check
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
 
   # Job Functions
+  createJob:
+    handler: src/handlers/jobHandler.createJob
+    timeout: 30
+    events:
+      - http:
+          path: jobs/create
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
 
+  listJobs:
+    handler: src/handlers/jobHandler.listJobs
+    timeout: 30
+    events:
+      - http:
+          path: jobs/list
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  getJobDetails:
+    handler: src/handlers/jobHandler.getJobDetails
+    timeout: 30
+    events:
+      - http:
+          path: jobs/{id}
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  updateJob:
+    handler: src/handlers/jobHandler.updateJob
+    timeout: 30
+    events:
+      - http:
+          path: jobs/{id}
+          method: put
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  deleteJob:
+    handler: src/handlers/jobHandler.deleteJob
+    timeout: 30
+    events:
+      - http:
+          path: jobs/{id}
+          method: delete
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  closeJob:
+    handler: src/handlers/jobHandler.closeJob
+    timeout: 30
+    events:
+      - http:
+          path: jobs/{id}/close
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  reopenJob:
+    handler: src/handlers/jobHandler.reopenJob
+    timeout: 30
+    events:
+      - http:
+          path: jobs/{id}/reopen
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  # Resume Functions
+  uploadResume:
+    handler: src/handlers/resumeHandler.uploadResume
+    timeout: 60
+    events:
+      - http:
+          path: resumes/upload
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  listResumes:
+    handler: src/handlers/resumeHandler.listResumes
+    timeout: 30
+    events:
+      - http:
+          path: resumes/list
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  getResumeDetails:
+    handler: src/handlers/resumeHandler.getResumeDetails
+    timeout: 30
+    events:
+      - http:
+          path: resumes/{id}
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  updateResumeStatus:
+    handler: src/handlers/resumeHandler.updateResumeStatus
+    timeout: 30
+    events:
+      - http:
+          path: resumes/{id}/status
+          method: put
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  associateResumeWithJob:
+    handler: src/handlers/resumeHandler.associateResumeWithJob
+    timeout: 30
+    events:
+      - http:
+          path: resumes/associate
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  getTopScoredResumesForJob:
+    handler: src/handlers/resumeHandler.getTopScoredResumesForJob
+    timeout: 30
+    events:
+      - http:
+          path: jobs/{jobId}/top-resumes
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  downloadResumeFile:
+    handler: src/handlers/resumeHandler.downloadResumeFile
+    timeout: 60
+    events:
+      - http:
+          path: resumes/{id}/download
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  # Report Functions
+  generateCandidateReport:
+    handler: src/handlers/reportHandler.generateCandidateReport
+    timeout: 60
+    events:
+      - http:
+          path: reports/candidate
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  compareCandidates:
+    handler: src/handlers/reportHandler.compareCandidates
+    timeout: 60
+    events:
+      - http:
+          path: reports/compare
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  getReportsForResume:
+    handler: src/handlers/reportHandler.getReportsForResume
+    timeout: 30
+    events:
+      - http:
+          path: resumes/{resume_id}/reports
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  getReport:
+    handler: src/handlers/reportHandler.getReport
+    timeout: 30
+    events:
+      - http:
+          path: reports/{report_id}
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  markReportAsSent:
+    handler: src/handlers/reportHandler.markReportAsSent
+    timeout: 30
+    events:
+      - http:
+          path: reports/{report_id}/mark-sent
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  # Interview Functions
+  scheduleInterview:
+    handler: src/handlers/interviewHandler.scheduleInterview
+    timeout: 30
+    events:
+      - http:
+          path: interviews/schedule
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  listInterviews:
+    handler: src/handlers/interviewHandler.listInterviews
+    timeout: 30
+    events:
+      - http:
+          path: interviews/list
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  getInterviewDetails:
+    handler: src/handlers/interviewHandler.getInterviewDetails
+    timeout: 30
+    events:
+      - http:
+          path: interviews/{id}
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  updateInterview:
+    handler: src/handlers/interviewHandler.updateInterview
+    timeout: 30
+    events:
+      - http:
+          path: interviews/{id}
+          method: put
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  cancelInterview:
+    handler: src/handlers/interviewHandler.cancelInterview
+    timeout: 30
+    events:
+      - http:
+          path: interviews/{id}/cancel
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  completeInterview:
+    handler: src/handlers/interviewHandler.completeInterview
+    timeout: 30
+    events:
+      - http:
+          path: interviews/{id}/complete
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  findAvailableSlots:
+    handler: src/handlers/interviewHandler.findAvailableSlots
+    timeout: 30
+    events:
+      - http:
+          path: interviews/available-slots
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  # Email Functions
+  syncEmails:
+    handler: src/handlers/emailHandler.syncEmails
+    timeout: 120
+    events:
+      - http:
+          path: emails/sync
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  listEmails:
+    handler: src/handlers/emailHandler.listEmails
+    timeout: 30
+    events:
+      - http:
+          path: emails/list
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  extractResumeFromEmail:
+    handler: src/handlers/emailHandler.extractResumeFromEmail
+    timeout: 60
+    events:
+      - http:
+          path: emails/extract-resume
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  sendEmail:
+    handler: src/handlers/emailHandler.sendEmail
+    timeout: 30
+    events:
+      - http:
+          path: emails/send
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  associateEmailWithJob:
+    handler: src/handlers/emailHandler.associateEmailWithJob
+    timeout: 30
+    events:
+      - http:
+          path: emails/associate
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  updateEmailStatus:
+    handler: src/handlers/emailHandler.updateEmailStatus
+    timeout: 30
+    events:
+      - http:
+          path: emails/{email_id}/status
+          method: put
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  # Criteria Functions
+  createCriteria:
+    handler: src/handlers/criteriaHandler.createCriteria
+    timeout: 30
+    events:
+      - http:
+          path: criteria/create
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  getCriteria:
+    handler: src/handlers/criteriaHandler.getCriteria
+    timeout: 30
+    events:
+      - http:
+          path: jobs/{job_id}/criteria
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  applyShortlistingCriteria:
+    handler: src/handlers/criteriaHandler.applyShortlistingCriteria
+    timeout: 60
+    events:
+      - http:
+          path: criteria/apply
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  # Analytics Functions
+  getJobAnalytics:
+    handler: src/handlers/analyticsHandler.getJobAnalytics
+    timeout: 30
+    events:
+      - http:
+          path: analytics/jobs
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  getResumeAnalytics:
+    handler: src/handlers/analyticsHandler.getResumeAnalytics
+    timeout: 30
+    events:
+      - http:
+          path: analytics/resumes
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  getInterviewAnalytics:
+    handler: src/handlers/analyticsHandler.getInterviewAnalytics
+    timeout: 30
+    events:
+      - http:
+          path: analytics/interviews
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  getRecruitmentFunnelAnalytics:
+    handler: src/handlers/analyticsHandler.getRecruitmentFunnelAnalytics
+    timeout: 30
+    events:
+      - http:
+          path: analytics/funnel
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  # Feedback Functions
+  createFeedback:
+    handler: src/handlers/feedbackHandler.createFeedback
+    timeout: 30
+    events:
+      - http:
+          path: feedback/create
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  getFeedback:
+    handler: src/handlers/feedbackHandler.getFeedback
+    timeout: 30
+    events:
+      - http:
+          path: feedback/{id}
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  # Collaboration Functions
+  addComment:
+    handler: src/handlers/collaborationHandler.addComment
+    timeout: 30
+    events:
+      - http:
+          path: comments/add
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  fetchNotifications:
+    handler: src/handlers/collaborationHandler.fetchNotifications
+    timeout: 30
+    events:
+      - http:
+          path: users/{user_id}/notifications
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
 
 plugins:
   - serverless-offline
