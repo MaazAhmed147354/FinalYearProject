@@ -1,5 +1,3 @@
-// C:\Users\abdul\Downloads\FinalYearProject-main\FinalYearProject-main\Frontend\src\layouts\MainLayout.jsx
-
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
@@ -55,7 +53,7 @@ const MainLayout = ({ children }) => {
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                 >
                   <User className="h-5 w-5" />
-                  <span className="hidden md:block">John Doe</span>
+                  <span className="hidden md:block">Maaz Ahmed</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
                 {isProfileOpen && (

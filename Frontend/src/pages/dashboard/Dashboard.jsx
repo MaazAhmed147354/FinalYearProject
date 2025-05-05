@@ -45,11 +45,11 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-gray-400 bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Create New Job Opening</h2>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button className="hover:bg-gray-300 rounded-4xl p-1" variant="ghost" size="sm" onClick={onClose}>
             <X className="h-5 w-5" />
           </Button>
         </div>
@@ -145,10 +145,10 @@ const CreateJobModal = ({ isOpen, onClose, onSubmit }) => {
           </div>
 
           <div className="flex justify-end space-x-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button className="hover:bg-gray-300 p-2" type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-blue-500 hover:bg-blue-600">
+            <Button type="submit" className="bg-blue-500 hover:bg-blue-600 p-2">
               Create Job Opening
             </Button>
           </div>
