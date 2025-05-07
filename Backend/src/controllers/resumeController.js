@@ -22,12 +22,12 @@ exports.uploadResume = async (event) => {
     const resumeData = body.resumeData;
     
     if (!fileData || !resumeData) {
-      return responseHelper.error(400, 'File and resume data are required');
+      return responseHelper.errorResponse(400, 'File and resume data are required');
     }
     
     // Validate required fields
     if (!resumeData.candidate_name || !resumeData.candidate_email) {
-      return responseHelper.error(400, 'Candidate name and email are required');
+      return responseHelper.errorResponse(400, 'Candidate name and email are required');
     }
     
     // Convert base64 to file buffer
@@ -48,10 +48,10 @@ exports.uploadResume = async (event) => {
     const resume = await resumeService.uploadResume(resumeData, file);
     
     // Return success
-    return responseHelper.success(201, 'Resume uploaded successfully', resume);
+    return responseHelper.successResponse(201, 'Resume uploaded successfully', resume);
   } catch (error) {
     console.error('Error in uploadResume controller:', error);
-    return responseHelper.error(500, 'Internal Server Error', error.message);
+    return responseHelper.errorResponse(500, 'Internal Server Error', error.message);
   }
 };
 
@@ -69,10 +69,10 @@ exports.listResumes = async (event) => {
     const resumes = await resumeService.listResumes(filters);
     
     // Return success
-    return responseHelper.success(200, 'Resumes retrieved successfully', resumes);
+    return responseHelper.successResponse(200, 'Resumes retrieved successfully', resumes);
   } catch (error) {
     console.error('Error in listResumes controller:', error);
-    return responseHelper.error(500, 'Internal Server Error', error.message);
+    return responseHelper.errorResponse(500, 'Internal Server Error', error.message);
   }
 };
 
@@ -87,23 +87,23 @@ exports.getResumeDetails = async (event) => {
     const { id } = event.pathParameters;
     
     if (!id) {
-      return responseHelper.error(400, 'Resume ID is required');
+      return responseHelper.errorResponse(400, 'Resume ID is required');
     }
     
     // Get resume details
     const resume = await resumeService.getResumeDetails(id);
     
     // Return success
-    return responseHelper.success(200, 'Resume details retrieved successfully', resume);
+    return responseHelper.successResponse(200, 'Resume details retrieved successfully', resume);
   } catch (error) {
     console.error('Error in getResumeDetails controller:', error);
     
     // Handle specific errors
     if (error.message === 'Resume not found') {
-      return responseHelper.error(404, 'Resume not found');
+      return responseHelper.errorResponse(404, 'Resume not found');
     }
     
-    return responseHelper.error(500, 'Internal Server Error', error.message);
+    return responseHelper.errorResponse(500, 'Internal Server Error', error.message);
   }
 };
 
@@ -119,27 +119,27 @@ exports.updateResumeStatus = async (event) => {
     
     // Validate required fields
     if (!body.id || !body.status) {
-      return responseHelper.error(400, 'Resume ID and status are required');
+      return responseHelper.errorResponse(400, 'Resume ID and status are required');
     }
     
     // Update status
     const resume = await resumeService.updateResumeStatus(body.id, body.status);
     
     // Return success
-    return responseHelper.success(200, 'Resume status updated successfully', resume);
+    return responseHelper.successResponse(200, 'Resume status updated successfully', resume);
   } catch (error) {
     console.error('Error in updateResumeStatus controller:', error);
     
     // Handle specific errors
     if (error.message === 'Resume not found') {
-      return responseHelper.error(404, 'Resume not found');
+      return responseHelper.errorResponse(404, 'Resume not found');
     }
     
     if (error.message.includes('Invalid status')) {
-      return responseHelper.error(400, error.message);
+      return responseHelper.errorResponse(400, error.message);
     }
     
-    return responseHelper.error(500, 'Internal Server Error', error.message);
+    return responseHelper.errorResponse(500, 'Internal Server Error', error.message);
   }
 };
 
@@ -155,27 +155,27 @@ exports.associateResumeWithJob = async (event) => {
     
     // Validate required fields
     if (!body.resume_id || !body.job_id) {
-      return responseHelper.error(400, 'Resume ID and Job ID are required');
+      return responseHelper.errorResponse(400, 'Resume ID and Job ID are required');
     }
     
     // Associate resume with job
     const resume = await resumeService.associateResumeWithJob(body.resume_id, body.job_id);
     
     // Return success
-    return responseHelper.success(200, 'Resume associated with job successfully', resume);
+    return responseHelper.successResponse(200, 'Resume associated with job successfully', resume);
   } catch (error) {
     console.error('Error in associateResumeWithJob controller:', error);
     
     // Handle specific errors
     if (error.message === 'Resume not found') {
-      return responseHelper.error(404, 'Resume not found');
+      return responseHelper.errorResponse(404, 'Resume not found');
     }
     
     if (error.message === 'Job not found') {
-      return responseHelper.error(404, 'Job not found');
+      return responseHelper.errorResponse(404, 'Job not found');
     }
     
-    return responseHelper.error(500, 'Internal Server Error', error.message);
+    return responseHelper.errorResponse(500, 'Internal Server Error', error.message);
   }
 };
 
@@ -191,17 +191,17 @@ exports.getTopScoredResumesForJob = async (event) => {
     const { limit } = event.queryStringParameters || {};
     
     if (!jobId) {
-      return responseHelper.error(400, 'Job ID is required');
+      return responseHelper.errorResponse(400, 'Job ID is required');
     }
     
     // Get top scored resumes
     const resumes = await resumeService.getTopScoredResumesForJob(jobId, limit ? parseInt(limit, 10) : 10);
     
     // Return success
-    return responseHelper.success(200, 'Top scored resumes retrieved successfully', resumes);
+    return responseHelper.successResponse(200, 'Top scored resumes retrieved successfully', resumes);
   } catch (error) {
     console.error('Error in getTopScoredResumesForJob controller:', error);
-    return responseHelper.error(500, 'Internal Server Error', error.message);
+    return responseHelper.errorResponse(500, 'Internal Server Error', error.message);
   }
 };
 
@@ -216,7 +216,7 @@ exports.downloadResumeFile = async (event) => {
     const { id } = event.pathParameters;
     
     if (!id) {
-      return responseHelper.error(400, 'Resume ID is required');
+      return responseHelper.errorResponse(400, 'Resume ID is required');
     }
     
     // Get resume details
@@ -224,7 +224,7 @@ exports.downloadResumeFile = async (event) => {
     
     // Validate file path
     if (!resume.file_path) {
-      return responseHelper.error(404, 'Resume file not found');
+      return responseHelper.errorResponse(404, 'Resume file not found');
     }
     
     // Read file (implementation depends on your storage solution)
@@ -248,9 +248,9 @@ exports.downloadResumeFile = async (event) => {
     
     // Handle specific errors
     if (error.message === 'Resume not found') {
-      return responseHelper.error(404, 'Resume not found');
+      return responseHelper.errorResponse(404, 'Resume not found');
     }
     
-    return responseHelper.error(500, 'Internal Server Error', error.message);
+    return responseHelper.errorResponse(500, 'Internal Server Error', error.message);
   }
 };

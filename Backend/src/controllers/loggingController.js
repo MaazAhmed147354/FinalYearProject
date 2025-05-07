@@ -9,6 +9,6 @@ exports.loginUser = async (event) => {
     return response;
   } catch (error) {
     console.error("Error in loginUser controller:", error);
-    return responseHelper.error(500, "Internal Server Error", error.message);
+    return responseHelper.errorResponse(500, "Internal Server Error", error.message);
   }
 };
