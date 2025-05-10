@@ -1,11 +1,16 @@
 "use strict";
 
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const cookie = require("cookie");
+const {
+  addToBlacklist,
+  isTokenBlacklisted,
+} = require("../utils/tokenBlacklist");
+const { User } = require("../models");
 
 /**
- * Authenticate a user and generate JWT token
+ * Authenticate a user and generate JWT token stored in an HTTP-only cookie.
  * @param {string} email - User email
  * @param {string} password - User password (plaintext)
  * @returns {Promise<Object>} Object containing user data and token
@@ -14,44 +19,46 @@ exports.loginUser = async (email, password) => {
   try {
     // Find user by email
     const user = await User.findOne({
-      where: { email }
+      where: { email },
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new Error("User not found");
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
-      throw new Error('Invalid password');
+      throw new Error("Invalid password");
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '12h' }
-    );
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "12h",
+    });
 
     // Determine redirect URL based on role
-    let redirectUrl = '/dashboard';
-    if (user.role === 'hr') {
-      redirectUrl = '/dashboard';
-    } else if (user.role === 'department') {
-      redirectUrl = '/dashboard';
+    let redirectUrl = "/dashboard"; // Default
+    if (user.role === "hr") {
+      redirectUrl = "/hr-dashboard";
+    } else if (user.role === "department") {
+      redirectUrl = "/department-dashboard";
     }
 
     return {
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        department: user.department
+      statusCode: 200,
+      headers: {
+        "Set-Cookie": cookie.serialize("token", token, {
+          httpOnly: true,
+          secure: false, // Set to true in production
+          maxAge: 12 * 60 * 60, // 12 hours
+          path: "/",
+        }),
       },
-      token,
-      redirectUrl
+      body: JSON.stringify({
+        message: "Logged in successfully!",
+        redirectUrl: redirectUrl,
+      }),
     };
   } catch (error) {
     throw error;
@@ -67,11 +74,11 @@ exports.registerUser = async (userData) => {
   try {
     // Check if user already exists
     const existingUser = await User.findOne({
-      where: { email: userData.email }
+      where: { email: userData.email },
     });
 
     if (existingUser) {
-      throw new Error('Email already in use');
+      throw new Error("Email already in use");
     }
 
     // Hash password
@@ -84,7 +91,7 @@ exports.registerUser = async (userData) => {
       email: userData.email,
       password_hash: passwordHash,
       role: userData.role,
-      department: userData.department || null
+      department: userData.department || null,
     });
 
     return {
@@ -93,7 +100,7 @@ exports.registerUser = async (userData) => {
       email: newUser.email,
       role: newUser.role,
       department: newUser.department,
-      created_at: newUser.created_at
+      created_at: newUser.created_at,
     };
   } catch (error) {
     throw error;
@@ -105,27 +112,38 @@ exports.registerUser = async (userData) => {
  * @param {string} token - JWT token to invalidate
  * @returns {Promise<boolean>} Success status
  */
-exports.logoutUser = async (token) => {
+exports.logoutUser = async (event) => {
   try {
-    // Add token to blacklist
-    // In a real application, you would store invalidated tokens in Redis or a database
-    // For now, we'll just return success
-    return true;
-  } catch (error) {
-    throw error;
-  }
-};
+    const cookies = cookie.parse(event.headers.Cookie || "");
+    const token = cookies.token;
 
-/**
- * Verify JWT token
- * @param {string} token - JWT token to verify
- * @returns {Promise<Object>} Decoded token payload
- */
-exports.verifyToken = async (token) => {
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return decoded;
+    // Blacklist the token if it exists and isn't already blacklisted
+    if (token && !isTokenBlacklisted(token)) {
+      addToBlacklist(token);
+    }
+
+    // Clear the JWT cookie
+    return {
+      statusCode: 200,
+      headers: {
+        "Set-Cookie": cookie.serialize("token", "", {
+          httpOnly: true,
+          secure: false, // Set to true in production
+          maxAge: -1, // Expire the cookie
+          path: "/",
+        }),
+      },
+      body: JSON.stringify({ message: "Logged out successfully!" }),
+    };
   } catch (error) {
-    throw new Error('Invalid token');
+    console.error("Error in logoutUser service:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        success: false,
+        message: "Internal Server Error",
+        error: error.message,
+      }),
+    };
   }
 };

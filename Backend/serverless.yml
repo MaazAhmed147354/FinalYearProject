@@ -68,20 +68,6 @@ functions:
               - X-Custom-Header
             allowCredentials: true
 
-  checkAuth:
-    handler: src/handlers/authHandler.checkAuth
-    timeout: 30
-    events:
-      - http:
-          path: auth/check
-          method: get
-          cors:
-            origin: "http://localhost:3000"
-            headers:
-              - Content-Type
-              - X-Custom-Header
-            allowCredentials: true
-
   # Job Functions
   createJob:
     handler: src/handlers/jobHandler.createJob
@@ -627,64 +613,6 @@ functions:
     events:
       - http:
           path: analytics/funnel
-          method: get
-          cors:
-            origin: "http://localhost:3000"
-            headers:
-              - Content-Type
-              - X-Custom-Header
-            allowCredentials: true
-
-  # Feedback Functions
-  createFeedback:
-    handler: src/handlers/feedbackHandler.createFeedback
-    timeout: 30
-    events:
-      - http:
-          path: feedback/create
-          method: post
-          cors:
-            origin: "http://localhost:3000"
-            headers:
-              - Content-Type
-              - X-Custom-Header
-            allowCredentials: true
-
-  getFeedback:
-    handler: src/handlers/feedbackHandler.getFeedback
-    timeout: 30
-    events:
-      - http:
-          path: feedback/{id}
-          method: get
-          cors:
-            origin: "http://localhost:3000"
-            headers:
-              - Content-Type
-              - X-Custom-Header
-            allowCredentials: true
-
-  # Collaboration Functions
-  addComment:
-    handler: src/handlers/collaborationHandler.addComment
-    timeout: 30
-    events:
-      - http:
-          path: comments/add
-          method: post
-          cors:
-            origin: "http://localhost:3000"
-            headers:
-              - Content-Type
-              - X-Custom-Header
-            allowCredentials: true
-
-  fetchNotifications:
-    handler: src/handlers/collaborationHandler.fetchNotifications
-    timeout: 30
-    events:
-      - http:
-          path: users/{user_id}/notifications
           method: get
           cors:
             origin: "http://localhost:3000"

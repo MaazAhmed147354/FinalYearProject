@@ -1,32 +1,18 @@
 "use strict";
 
-const authController = require('../controllers/authController');
-const auth = require('../middlewares/authMiddleware');
+const authController = require("../controllers/authController");
 
-/**
- * Login user route
- */
+// Login user route
 exports.loginUser = async (event) => {
   return await authController.loginUser(event);
 };
 
-/**
- * Register user route
- */
+// Register user route
 exports.registerUser = async (event) => {
   return await authController.registerUser(event);
 };
 
-/**
- * Logout user route
- */
+// Logout user route
 exports.logoutUser = async (event) => {
   return await authController.logoutUser(event);
-};
-
-/**
- * Check authentication status route
- */
-exports.checkAuth = async (event) => {
-  return await authController.checkAuth(event);
 };

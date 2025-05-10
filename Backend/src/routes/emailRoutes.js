@@ -2,7 +2,7 @@ const emailController = require("../controllers/emailController");
 const auth = require("../middlewares/authMiddleware");
 
 // Synchronize emails
-module.exports.syncEmails = async (event) => {
+exports.syncEmails = async (event) => {
   const authResult = await auth.authorizeToken(event, ["admin", "hr"]);
   if (authResult.statusCode !== 202) return authResult;
 
@@ -10,7 +10,7 @@ module.exports.syncEmails = async (event) => {
 };
 
 // List emails
-module.exports.listEmails = async (event) => {
+exports.listEmails = async (event) => {
   const authResult = await auth.authorizeToken(event);
   if (authResult.statusCode !== 202) return authResult;
 
@@ -18,7 +18,7 @@ module.exports.listEmails = async (event) => {
 };
 
 // Extract resume from email
-module.exports.extractResumeFromEmail = async (event) => {
+exports.extractResumeFromEmail = async (event) => {
   const authResult = await auth.authorizeToken(event, ["hr"]);
   if (authResult.statusCode !== 202) return authResult;
 
@@ -26,7 +26,7 @@ module.exports.extractResumeFromEmail = async (event) => {
 };
 
 // Send email to candidate
-module.exports.sendEmail = async (event) => {
+exports.sendEmail = async (event) => {
   const authResult = await auth.authorizeToken(event, ["hr", "recruiter"]);
   if (authResult.statusCode !== 202) return authResult;
 
@@ -34,7 +34,7 @@ module.exports.sendEmail = async (event) => {
 };
 
 // Associate email with job
-module.exports.associateEmailWithJob = async (event) => {
+exports.associateEmailWithJob = async (event) => {
   const authResult = await auth.authorizeToken(event, ["hr"]);
   if (authResult.statusCode !== 202) return authResult;
 
@@ -42,7 +42,7 @@ module.exports.associateEmailWithJob = async (event) => {
 };
 
 // Update email status
-module.exports.updateEmailStatus = async (event) => {
+exports.updateEmailStatus = async (event) => {
   const authResult = await auth.authorizeToken(event, ["hr"]);
   if (authResult.statusCode !== 202) return authResult;
 
