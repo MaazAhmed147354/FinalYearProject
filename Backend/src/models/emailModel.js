@@ -30,6 +30,10 @@ const Email = sequelize.define('Email', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  attachment_paths: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
   job_id: {
     type: DataTypes.INTEGER,
     allowNull: true,

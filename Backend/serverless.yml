@@ -512,7 +512,7 @@ functions:
     timeout: 30
     events:
       - http:
-          path: emails/{email_id}/status
+          path: emails/status
           method: put
           cors:
             origin: "http://localhost:3000"
