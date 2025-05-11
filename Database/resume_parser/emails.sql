@@ -30,6 +30,7 @@ CREATE TABLE `emails` (
   `body` TEXT NULL,
   `received_date` DATETIME NOT NULL,
   `has_resume` BOOLEAN NOT NULL DEFAULT FALSE,
+  `attachment_paths` TEXT NULL,
   `job_id` INT NULL,
   `status` ENUM('pending', 'imported', 'rejected', 'spam') DEFAULT 'pending',
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -46,13 +47,13 @@ CREATE TABLE `emails` (
 LOCK TABLES `emails` WRITE;
 /*!40000 ALTER TABLE `emails` DISABLE KEYS */;
 
-INSERT INTO `emails` (`sender`, `subject`, `body`, `received_date`, `has_resume`, `job_id`, `status`)
+INSERT INTO `emails` (`sender`, `subject`, `body`, `received_date`, `has_resume`, `attachment_paths`, `job_id`, `status`)
 VALUES 
-  ('hr@company.com', 'Application for Software Developer', 'Please find attached my resume for the Software Developer position.', '2025-05-03 10:00:00', TRUE, 1, 'pending'),
-  ('recruiter@company.com', 'Follow-up on Interview for Data Analyst', 'Thank you for interviewing for the Data Analyst position. Please find attached your offer.', '2025-05-02 15:30:00', TRUE, 2, 'imported'),
-  ('admin@company.com', 'Spam Email Notification', 'This is a test spam email.', '2025-05-01 09:00:00', FALSE, NULL, 'spam');
+  ('hr@company.com', 'Application for Software Developer', 'Please find attached my resume for the Software Developer position.', '2025-05-03 10:00:00', TRUE, NULL, 1, 'pending'),
+  ('recruiter@company.com', 'Follow-up on Interview for Data Analyst', 'Thank you for interviewing for the Data Analyst position. Please find attached your offer.', '2025-05-02 15:30:00', TRUE, NULL, 2, 'imported'),
+  ('admin@company.com', 'Spam Email Notification', 'This is a test spam email.', '2025-05-01 09:00:00', FALSE, NULL, NULL, 'spam');
 
- /*!40000 ALTER TABLE `emails` ENABLE KEYS */;
+/*!40000 ALTER TABLE `emails` ENABLE KEYS */;
 UNLOCK TABLES;
 
  /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
