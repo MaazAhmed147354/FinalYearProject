@@ -1,0 +1,56 @@
+# python-service/serverless.yml
+service: python-ai-service
+
+provider:
+  name: aws
+  runtime: python3.9
+  stage: dev
+  region: us-east-1
+
+functions:
+  pythonHello:
+    handler: handler.hello
+    events:
+      - http:
+          path: python-hello
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Custom-Header
+
+  evaluateResume:
+    handler: handler.evaluate_resume
+    events:
+      - http:
+          path: evaluate
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Custom-Header
+  
+  parseResume:
+    handler: handler.parse_resume
+    events:
+      - http:
+          path: parse
+          method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+              - X-Custom-Header
+
+plugins:
+  - serverless-python-requirements
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3001    # Different HTTP port than Node.js
+    lambdaPort: 3003  # Different Lambda port than Node.js
+  pythonRequirements:
+    dockerizePip: false
