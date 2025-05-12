@@ -36,12 +36,6 @@ class AuthService {
       withCredentials: true,
     });
   }
-
-  async checkAuth() {
-    return axios.get(BASE_API_URL + "/auth/check", {
-      withCredentials: true,
-    });
-  }
 }
 
 export default new AuthService();

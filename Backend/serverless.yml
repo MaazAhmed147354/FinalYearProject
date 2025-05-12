@@ -166,7 +166,36 @@ functions:
               - Content-Type
               - X-Custom-Header
             allowCredentials: true
-
+  
+  # AI Model Integration Functions
+  processResume:
+    handler: src/handlers/aiHandler.processResume
+    timeout: 60
+    events:
+      - http:
+          path: ai/process-resume
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+            
+  processMultipleResumes:
+    handler: src/handlers/aiHandler.processMultipleResumes
+    timeout: 120
+    events:
+      - http:
+          path: ai/process-batch
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+  
   # Resume Functions
   uploadResume:
     handler: src/handlers/resumeHandler.uploadResume
@@ -623,3 +652,8 @@ functions:
 
 plugins:
   - serverless-offline
+
+custom:
+  serverless-offline:
+    httpPort: 3000
+    lambdaPort: 3002  # Explicitly set Lambda port

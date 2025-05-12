@@ -2,9 +2,6 @@
 
 const resumeService = require('../services/resumeService');
 const responseHelper = require('../utils/responseHelper');
-// const multer = require('multer');
-// const multerS3 = require('multer-s3');
-// const AWS = require('aws-sdk');
 
 /**
  * Upload a resume
@@ -13,35 +10,29 @@ const responseHelper = require('../utils/responseHelper');
  */
 exports.uploadResume = async (event) => {
   try {
-    // Parse multipart form data (file and metadata)
-    // For serverless, we need to handle file uploads differently
-    // Here we're assuming a base64 encoded file in the request body
-    
+    // Parse JSON request body
     const body = JSON.parse(event.body);
-    const fileData = body.file;
-    const resumeData = body.resumeData;
     
-    if (!fileData || !resumeData) {
+    if (!body.file || !body.resumeData) {
       return responseHelper.errorResponse(400, 'File and resume data are required');
     }
     
-    // Validate required fields
+    // Extract base64 file data and metadata
+    const fileData = body.file;
+    const resumeData = body.resumeData;
+    
+    // Validate resumeData
     if (!resumeData.candidate_name || !resumeData.candidate_email) {
       return responseHelper.errorResponse(400, 'Candidate name and email are required');
     }
     
-    // Convert base64 to file buffer
-    const fileParts = fileData.split(';base64,');
-    const fileType = fileParts[0].split(':')[1];
-    const fileBuffer = Buffer.from(fileParts[1], 'base64');
+    // Convert base64 to buffer
+    const fileBuffer = Buffer.from(fileData.replace(/^data:application\/pdf;base64,/, ''), 'base64');
     
     // Create file object
     const file = {
       originalname: resumeData.filename || 'resume.pdf',
-      mimetype: fileType,
-      buffer: fileBuffer,
-      size: fileBuffer.length,
-      data: fileBuffer
+      buffer: fileBuffer
     };
     
     // Upload resume

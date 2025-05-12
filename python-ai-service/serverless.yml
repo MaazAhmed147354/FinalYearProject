@@ -1,5 +1,5 @@
-# python-service/serverless.yml
-service: python-ai-service
+# python-ai-service/serverless.yml
+service: cv-evaluation-service
 
 provider:
   name: aws
@@ -8,41 +8,21 @@ provider:
   region: us-east-1
 
 functions:
-  pythonHello:
-    handler: handler.hello
-    events:
-      - http:
-          path: python-hello
-          method: post
-          cors:
-            origin: '*'
-            headers:
-              - Content-Type
-              - X-Custom-Header
-
-  evaluateResume:
-    handler: handler.evaluate_resume
-    events:
-      - http:
-          path: evaluate
-          method: post
-          cors:
-            origin: '*'
-            headers:
-              - Content-Type
-              - X-Custom-Header
-  
   parseResume:
     handler: handler.parse_resume
     events:
       - http:
-          path: parse
+          path: parse-resume
           method: post
-          cors:
-            origin: '*'
-            headers:
-              - Content-Type
-              - X-Custom-Header
+          cors: true
+  
+  evaluateResume:
+    handler: handler.evaluate_resume
+    events:
+      - http:
+          path: evaluate-resume
+          method: post
+          cors: true
 
 plugins:
   - serverless-python-requirements
@@ -50,7 +30,7 @@ plugins:
 
 custom:
   serverless-offline:
-    httpPort: 3001    # Different HTTP port than Node.js
-    lambdaPort: 3003  # Different Lambda port than Node.js
+    httpPort: 3001
+    lambdaPort: 3003
   pythonRequirements:
     dockerizePip: false
