@@ -3,14 +3,10 @@ import axios from "axios";
 const BASE_API_URL = "http://localhost:3000/dev";
 
 class InterviewService {
-  async scheduleInterview(resume_id, participants, datetime) {
+  async scheduleInterview(interviewData) {
     return axios.post(
-      BASE_API_URL + "/interviews/schedule",
-      {
-        resume_id: resume_id,
-        participants: participants,
-        datetime: datetime,
-      },
+      BASE_API_URL + "/interviews/schedule",  // Changed from "/api/interviews"
+      interviewData,
       {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
@@ -18,8 +14,9 @@ class InterviewService {
     );
   }
 
-  async listInterviews() {
-    return axios.get(BASE_API_URL + "/interviews/list", {
+  async listInterviews(filters = {}) {
+    return axios.get(BASE_API_URL + "/interviews/list", {  // Changed from "/api/interviews"
+      params: filters,
       withCredentials: true,
     });
   }
@@ -37,20 +34,23 @@ class InterviewService {
     });
   }
 
-  async cancelInterview(id) {
-    return axios.post(BASE_API_URL + `/interviews/${id}/cancel`, null, {
+  async cancelInterview(id, reason) {
+    return axios.post(BASE_API_URL + `/interviews/${id}/cancel`, { reason }, {
       withCredentials: true,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
-  async completeInterview(id) {
-    return axios.post(BASE_API_URL + `/interviews/${id}/complete`, null, {
+  async completeInterview(id, feedback) {
+    return axios.post(BASE_API_URL + `/interviews/${id}/complete`, { feedback }, {
       withCredentials: true,
+      headers: { "Content-Type": "application/json" },
     });
   }
 
-  async findAvailableSlots() {
+  async findAvailableSlots(date, interviewers, duration = 60) {
     return axios.get(BASE_API_URL + "/interviews/available-slots", {
+      params: { date, interviewers, duration },
       withCredentials: true,
     });
   }
