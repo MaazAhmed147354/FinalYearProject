@@ -5,8 +5,8 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import { TrendingUp, Users, CheckCircle, Clock, Download } from "lucide-react";
-import React from "react";
+import { TrendingUp, Users, CheckCircle, Clock, Download, AlertCircle } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -23,8 +23,63 @@ import {
   Cell,
 } from "recharts";
 
+// Import the analytics service
+import AnalyticsService from "../../services/AnalyticsService";
+
 const Reports = () => {
-  // Sample data for charts
+  // State to store API data
+  const [jobAnalytics, setJobAnalytics] = useState(null);
+  const [resumeAnalytics, setResumeAnalytics] = useState(null);
+  const [interviewAnalytics, setInterviewAnalytics] = useState(null);
+  const [funnelAnalytics, setFunnelAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch data when component mounts
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch all data in parallel
+        const [jobData, resumeData, interviewData, funnelData] = await Promise.all([
+          AnalyticsService.getJobAnalytics(),
+          AnalyticsService.getResumeAnalytics(),
+          AnalyticsService.getInterviewAnalytics(),
+          AnalyticsService.getRecruitmentFunnelAnalytics()
+        ]);
+        
+        // Add these debug lines
+        console.log("Job Analytics Response:", jobData);
+        console.log("Resume Analytics Response:", resumeData);
+        console.log("Interview Analytics Response:", interviewData);
+        console.log("Funnel Analytics Response:", funnelData);
+        
+        // Then adjust these lines based on the actual response structure
+        // setJobAnalytics(jobData.data);  // Try this if jobData.data.data doesn't work
+        // setResumeAnalytics(resumeData.data);
+        // setInterviewAnalytics(interviewData.data);
+        // setFunnelAnalytics(funnelData.data);
+
+        // TO THESE:
+        setJobAnalytics(jobData.data.data);  // Correct - access the nested data
+        setResumeAnalytics(resumeData.data.data);  // Correct
+        setInterviewAnalytics(interviewData.data.data);  // Correct
+        setFunnelAnalytics(funnelData.data.data);  // Correct
+        
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching analytics data:", err);
+        setError("Failed to load analytics data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Sample data for charts (used as fallback)
   const applicationTrends = [
     { month: "Jan", applications: 150, shortlisted: 45, hired: 12 },
     { month: "Feb", applications: 180, shortlisted: 55, hired: 15 },
@@ -41,32 +96,124 @@ const Reports = () => {
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042"];
 
-  const metrics = [
-    {
-      title: "Total Applications",
-      value: "2,458",
-      change: "+12%",
-      icon: Users,
-    },
-    {
-      title: "Average Time to Hire",
-      value: "18 days",
-      change: "-5%",
-      icon: Clock,
-    },
-    {
-      title: "Shortlist Rate",
-      value: "28%",
-      change: "+3%",
-      icon: CheckCircle,
-    },
-    {
-      title: "Conversion Rate",
-      value: "8.5%",
-      change: "+1.5%",
-      icon: TrendingUp,
-    },
-  ];
+  // Metrics data (use API data if available, otherwise fall back to sample data)
+  const getMetrics = () => {
+    if (loading || !resumeAnalytics || !funnelAnalytics || !jobAnalytics) {
+      return [
+        {
+          title: "Total Applications",
+          value: resumeAnalytics?.total_resumes ?? 0,
+          change: "+12%",
+          icon: Users,
+        },
+        {
+          title: "Average Time to Hire",
+          value: `${Math.round(jobAnalytics?.time_to_fill?.avg_days ?? 0)} days`,
+          change: "-5%",
+          icon: Clock,
+        },
+        {
+          title: "Shortlist Rate",
+          value: `${Math.round(funnelAnalytics?.shortlist_rate ?? 0)}%`,
+          change: "+3%", 
+          icon: CheckCircle,
+        },
+        {
+          title: "Conversion Rate",
+          value: `${Math.min(Math.round(funnelAnalytics?.interview_rate ?? 0), 100)}%`,
+          change: "+1.5%",
+          icon: TrendingUp,
+        },
+      ];
+    }
+
+    return [
+      {
+        title: "Total Applications",
+        value: resumeAnalytics.total_resumes || 0,
+        change: "+12%", // This would need historical data to calculate
+        icon: Users,
+      },
+      {
+        title: "Average Time to Hire",
+        value: `${Math.round(jobAnalytics.time_to_fill?.avg_days || 0)} days`,
+        change: "-5%", // This would need historical data to calculate
+        icon: Clock,
+      },
+      {
+        title: "Shortlist Rate",
+        value: `${Math.round(funnelAnalytics.shortlist_rate || 0)}%`,
+        change: "+3%", // This would need historical data to calculate
+        icon: CheckCircle,
+      },
+      {
+        title: "Conversion Rate",
+        value: `${Math.round(funnelAnalytics.interview_rate || 0)}%`,
+        change: "+1.5%", // This would need historical data to calculate
+        icon: TrendingUp,
+      },
+    ];
+  };
+
+  // Get department data for charts
+  const getDepartmentData = () => {
+    if (loading || !jobAnalytics || !jobAnalytics.jobs_by_department) {
+      return [
+        { department: "Engineering", openings: 12, filled: 8 },
+        { department: "Product", openings: 8, filled: 5 },
+        { department: "Design", openings: 6, filled: 4 },
+        { department: "Marketing", openings: 4, filled: 2 },
+      ];
+    }
+
+    return jobAnalytics.jobs_by_department.map(dept => ({
+      department: dept.department || 'Unknown',
+      openings: parseInt(dept.count) || 0,
+      filled: 0 // This data isn't available from the API yet
+    }));
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="p-6 flex justify-center items-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <Clock className="w-12 h-12 mx-auto text-blue-500 animate-pulse" />
+              <h3 className="mt-4 text-lg font-medium">Loading Analytics</h3>
+              <p className="mt-2 text-gray-500">Please wait while we fetch the latest data...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="p-6 flex justify-center items-center">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <AlertCircle className="w-12 h-12 mx-auto text-red-500" />
+              <h3 className="mt-4 text-lg font-medium">Error Loading Analytics</h3>
+              <p className="mt-2 text-gray-500">{error}</p>
+              <Button 
+                className="mt-4 bg-blue-500 hover:bg-blue-600" 
+                onClick={() => window.location.reload()}
+              >
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const metrics = getMetrics();
 
   return (
     <div className="p-6">
@@ -192,14 +339,7 @@ const Reports = () => {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={[
-                    { department: "Engineering", openings: 12, filled: 8 },
-                    { department: "Product", openings: 8, filled: 5 },
-                    { department: "Design", openings: 6, filled: 4 },
-                    { department: "Marketing", openings: 4, filled: 2 },
-                  ]}
-                >
+                <BarChart data={getDepartmentData()}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="department" />
                   <YAxis />
@@ -272,12 +412,20 @@ const Reports = () => {
                   <span className="text-sm font-medium">
                     Average Match Score
                   </span>
-                  <span className="text-sm font-medium">75%</span>
+                  <span className="text-sm font-medium">
+                    {resumeAnalytics?.score_statistics?.avg_score 
+                      ? `${Math.round(resumeAnalytics.score_statistics.avg_score)}%` 
+                      : '75%'}
+                  </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-blue-500 h-2 rounded-full"
-                    style={{ width: "75%" }}
+                    style={{ 
+                      width: resumeAnalytics?.score_statistics?.avg_score 
+                        ? `${Math.round(resumeAnalytics.score_statistics.avg_score)}%` 
+                        : '75%' 
+                    }}
                   ></div>
                 </div>
               </div>
@@ -320,7 +468,11 @@ const Reports = () => {
             <div className="flex flex-col items-center">
               <div className="relative w-40 h-40">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-3xl font-bold">78%</span>
+                  <span className="text-3xl font-bold">
+                    {interviewAnalytics?.completion_stats?.completion_rate
+                      ? `${Math.round(interviewAnalytics.completion_stats.completion_rate)}%`
+                      : '78%'}
+                  </span>
                 </div>
                 <svg className="w-full h-full" viewBox="0 0 36 36">
                   <path
@@ -338,13 +490,13 @@ const Reports = () => {
                     fill="none"
                     stroke="#4CAF50"
                     strokeWidth="3"
-                    strokeDasharray="78, 100"
+                    strokeDasharray={`${interviewAnalytics?.completion_stats?.completion_rate || 78}, 100`}
                   />
                 </svg>
               </div>
               <div className="mt-4 text-center">
                 <p className="text-sm text-gray-600">
-                  Based on last 50 interviews
+                  Based on {interviewAnalytics?.total_interviews || 50} interviews
                 </p>
               </div>
             </div>
@@ -360,15 +512,17 @@ const Reports = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">New Applications</span>
-                <span className="text-sm font-bold">124</span>
+                <span className="text-sm font-bold">{resumeAnalytics?.total_resumes || 124}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Screening</span>
-                <span className="text-sm font-bold">86</span>
+                <span className="text-sm font-bold">
+                  {resumeAnalytics?.resumes_by_status?.find(s => s.status === 'pending')?.count || 86}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Interview</span>
-                <span className="text-sm font-bold">45</span>
+                <span className="text-sm font-bold">{interviewAnalytics?.total_interviews || 45}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Technical Test</span>
@@ -380,7 +534,7 @@ const Reports = () => {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Hired</span>
-                <span className="text-sm font-bold">8</span>
+                <span className="text-sm font-bold">{funnelAnalytics?.total_hires || 8}</span>
               </div>
             </div>
           </CardContent>

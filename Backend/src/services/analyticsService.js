@@ -300,7 +300,7 @@ exports.getRecruitmentFunnelAnalytics = async () => {
       : 0;
 
     funnelStats.interview_rate = funnelStats.total_shortlisted > 0
-      ? (funnelStats.total_interviews / funnelStats.total_shortlisted) * 100
+      ? Math.min((funnelStats.total_interviews / funnelStats.total_shortlisted) * 100, 100)
       : 0;
 
     return funnelStats;
