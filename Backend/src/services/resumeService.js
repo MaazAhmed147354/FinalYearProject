@@ -61,15 +61,36 @@ exports.uploadResume = async (resumeData, file) => {
     const parsedData = await parseResume(filePath);
     // Create resume record
     const resume = await Resume.create({
-      candidate_id: candidate.id,
-      job_id: resumeData.job_id || null,
-      file_path: filePath,
-      parsed_data: parsedData,
-      experience_years: parsedData.total_experience_years || 0,
-      skills: parsedData.skills || [],
-      education: parsedData.education || [],
-      status: "pending",
-    });
+  candidate_id: candidate.id,
+  job_id: resumeData.job_id || null,
+  file_path: filePath,
+  parsed_data: sanitizeParsedData(parsedData), // Add sanitization
+  experience_years: parsedData.total_experience_years || 0,
+  skills: Array.isArray(parsedData.skills) ? parsedData.skills : [],
+  education: Array.isArray(parsedData.education) ? parsedData.education : [],
+  status: "pending",
+});
+
+// Add this helper function
+function sanitizeParsedData(data) {
+  try {
+    // Test if data can be serialized to JSON
+    const jsonString = JSON.stringify(data);
+    const parsedBack = JSON.parse(jsonString);
+    return parsedBack;
+  } catch (error) {
+    console.error("Data cannot be serialized to JSON:", error);
+    // Return a sanitized version
+    return {
+      summary: data.summary || "",
+      experience: Array.isArray(data.experience) ? data.experience : [],
+      education: Array.isArray(data.education) ? data.education : [],
+      skills: Array.isArray(data.skills) ? data.skills : [],
+      accomplishments: Array.isArray(data.accomplishments) ? data.accomplishments : [],
+      total_experience_years: data.total_experience_years || 0
+    };
+  }
+}
     // Score the resume if job_id is provided
     if (resumeData.job_id) {
       await scoreResume(resume.id, resumeData.job_id);
@@ -98,33 +119,39 @@ const parseResume = async (filePath) => {
   try {
     console.log(`Calling Python API to parse resume at ${PYTHON_API_BASE_URL}/parse-resume`);
     
-    // Call Python API with increased timeout
+    // Call Python API with file path
     const response = await axios.post(
       `${PYTHON_API_BASE_URL}/parse-resume`,
       { file_path: filePath },
-      { timeout: 290000 } // 290 seconds (just under 5 minutes)
+      { timeout: 290000 } // 290 seconds timeout
     );
     
-    return response.data;
-  } catch (error) {
-    console.error("Error parsing resume:", error.message);
-    
-    // Improved error handling
-    if (error.code === 'ECONNABORTED' || (error.response && error.response.status === 504)) {
-      console.log('Timeout occurred while processing PDF');
+    // Validate response data
+    if (!response.data || typeof response.data !== 'object') {
+      console.warn("Invalid response from parse-resume API:", response.data);
       return {
-        summary: "The resume could not be processed automatically due to its complexity or size. Please try with a simpler PDF format.",
+        summary: "Failed to parse resume - invalid response format",
         experience: [],
         education: [],
         skills: [],
         accomplishments: [],
-        total_experience_years: 0,
-        processing_error: true
+        total_experience_years: 0
       };
     }
     
+    // Return parsed data
+    return response.data;
+  } catch (error) {
+    console.error('Error parsing resume:', error.message);
+    
+    // Check for JSON parsing errors
+    if (error.message && error.message.includes('JSON')) {
+      console.error('JSON parsing error in response data');
+    }
+    
+    // Fallback to basic parsing if API fails
     return {
-      summary: "Failed to parse resume automatically.",
+      summary: 'Failed to parse resume automatically.',
       experience: [],
       education: [],
       skills: [],
