@@ -2,7 +2,8 @@
 
 const { Interview, InterviewParticipant, Resume, Candidate, User, Job } = require('../models');
 const { Op } = require('sequelize');
-const { emailService } = require('./emailService');
+// const { emailService } = require('./emailService');
+const emailService = require('../services/emailService');
 
 /**
  * Schedule a new interview
@@ -417,73 +418,67 @@ exports.completeInterview = async (id, feedback) => {
  * @returns {Promise<Array>} Available slots
  */
 exports.findAvailableSlots = async (params) => {
-  try {
-    const { date, interviewers, duration = 60 } = params;
-    
-    if (!date || !interviewers || !Array.isArray(interviewers) || interviewers.length === 0) {
-      throw new Error('Missing required parameters');
-    }
-    
-    // Define working hours (9:00 - 17:00)
-    const startHour = 9;
-    const endHour = 17;
-    
-    // Get all interviews for the given date and interviewers
-    const existingInterviews = await Interview.findAll({
-      where: {
-        date,
-        status: { [Op.ne]: 'cancelled' }
-      },
-      include: [
-        {
-          model: InterviewParticipant,
-          as: 'participants',
-          where: {
-            user_id: { [Op.in]: interviewers }
+    try {
+      const { date, interviewers, duration = 60 } = params;
+      
+      // Define working hours (9:00 - 17:00)
+      const startHour = 9;
+      const endHour = 17;
+      
+      // Get all interviews for the given date and interviewers
+      const existingInterviews = await Interview.findAll({
+        where: {
+          date,
+          status: { [Op.ne]: 'cancelled' }
+        },
+        include: [
+          {
+            model: InterviewParticipant,
+            as: 'participants',
+            where: {
+              user_id: { [Op.in]: interviewers }
+            }
+          }
+        ]
+      });
+      
+      // Convert to busy time slots
+      const busySlots = existingInterviews.map(interview => {
+        const startTime = interview.time.split(':').map(Number);
+        const start = startTime[0] * 60 + startTime[1]; // minutes since 00:00
+        const end = start + interview.duration;
+        return { start, end };
+      });
+      
+      // Find available slots
+      const availableSlots = [];
+      const slotInterval = 30; // 30-minute intervals
+      
+      for (let hour = startHour; hour < endHour; hour++) {
+        for (let minute = 0; minute < 60; minute += slotInterval) {
+          const slotStart = hour * 60 + minute;
+          const slotEnd = slotStart + duration;
+          
+          // Skip if slot extends beyond working hours
+          if (slotEnd > endHour * 60) continue;
+          
+          // Check if slot overlaps with any busy slot
+          const isOverlapping = busySlots.some(busySlot => {
+            return (slotStart < busySlot.end && slotEnd > busySlot.start);
+          });
+          
+          if (!isOverlapping) {
+            const formattedHour = hour.toString().padStart(2, '0');
+            const formattedMinute = minute.toString().padStart(2, '0');
+            availableSlots.push(`${formattedHour}:${formattedMinute}`);
           }
         }
-      ]
-    });
-    
-    // Convert to busy time slots
-    const busySlots = existingInterviews.map(interview => {
-      const startTime = interview.time.split(':').map(Number);
-      const start = startTime[0] * 60 + startTime[1]; // minutes since 00:00
-      const end = start + interview.duration;
-      
-      return { start, end };
-    });
-    
-    // Find available slots
-    const availableSlots = [];
-    const slotInterval = 30; // 30-minute intervals
-    
-    for (let hour = startHour; hour < endHour; hour++) {
-      for (let minute = 0; minute < 60; minute += slotInterval) {
-        const slotStart = hour * 60 + minute;
-        const slotEnd = slotStart + duration;
-        
-        // Skip if slot extends beyond working hours
-        if (slotEnd > endHour * 60) continue;
-        
-        // Check if slot overlaps with any busy slot
-        const isOverlapping = busySlots.some(busySlot => {
-          return (slotStart < busySlot.end && slotEnd > busySlot.start);
-        });
-        
-        if (!isOverlapping) {
-          const formattedHour = hour.toString().padStart(2, '0');
-          const formattedMinute = minute.toString().padStart(2, '0');
-          
-          availableSlots.push(`${formattedHour}:${formattedMinute}`);
-        }
       }
+      
+      return availableSlots;
+    } catch (error) {
+      throw error;
     }
-    
-    return availableSlots;
-  } catch (error) {
-    throw error;
-  }
 };
 
 /**
