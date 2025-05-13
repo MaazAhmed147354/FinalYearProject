@@ -40,9 +40,9 @@ exports.loginUser = async (email, password) => {
     // Determine redirect URL based on role
     let redirectUrl = "/dashboard"; // Default
     if (user.role === "hr") {
-      redirectUrl = "/hr-dashboard";
+      redirectUrl = "/dashboard";
     } else if (user.role === "department") {
-      redirectUrl = "/department-dashboard";
+      redirectUrl = "/dashboard";
     }
 
     return {

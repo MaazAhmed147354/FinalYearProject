@@ -1,6 +1,5 @@
-// C:\Users\abdul\Downloads\FinalYearProject-main\FinalYearProject-main\Frontend\src\contexts\AuthContext.jsx
-
 import React, { createContext, useContext, useState, useEffect } from "react";
+import AuthService from "../services/AuthService"; // Import the AuthService
 
 const AuthContext = createContext();
 
@@ -10,7 +9,7 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is already logged in on initial load
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -20,14 +19,41 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       setLoading(true);
-      // API call would go here
-      // For now, we'll simulate a successful login
-      const userData = { id: 1, name: "John Doe", email, role: "hr" };
+
+      // Use AuthService instead of direct axios call
+      const response = await AuthService.loginUser(email, password);
+
+      // Store basic user info in localStorage
+      const userData = { email };
       setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      return userData;
+      localStorage.setItem("user", JSON.stringify(userData));
+
+      return { success: true, redirectUrl: response.data.redirectUrl };
     } catch (error) {
-      throw error;
+      console.error("Login error:", error);
+      throw error.response?.data?.message || "Login failed";
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (userData) => {
+    try {
+      setLoading(true);
+
+      // Use AuthService instead of direct axios call
+      const response = await AuthService.registerUser(
+        userData.name,
+        userData.email,
+        userData.password,
+        userData.role,
+        userData.department
+      );
+
+      return { success: true, data: response.data };
+    } catch (error) {
+      console.error("Registration error:", error);
+      throw error.response?.data?.message || "Registration failed";
     } finally {
       setLoading(false);
     }
@@ -36,10 +62,16 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       setLoading(true);
-      // API call would go here
+
+      // Use AuthService instead of direct axios call
+      await AuthService.logoutUser();
+
       setUser(null);
-      localStorage.removeItem('user');
+      localStorage.removeItem("user");
+
+      return { success: true };
     } catch (error) {
+      console.error("Logout error:", error);
       throw error;
     } finally {
       setLoading(false);
@@ -50,6 +82,7 @@ export const AuthProvider = ({ children }) => {
     user,
     loading,
     login,
+    register,
     logout,
     isAuthenticated: !!user,
   };

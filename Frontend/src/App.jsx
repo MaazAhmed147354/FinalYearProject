@@ -1,5 +1,10 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import Dashboard from "./pages/dashboard/Dashboard";
 import EmailIntegration from "./pages/email/EmailIntegration";
@@ -11,20 +16,17 @@ import Reports from "./pages/reports/Reports";
 import Settings from "./pages/settings/Settings";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
-
-// For development - hardcoded auth state
-// Remove this and uncomment the useAuth import when backend is connected
-// import { useAuth } from "./contexts/AuthContext";
+import { useAuth } from "./contexts/AuthContext";
 
 const App = () => {
-  // For development - hardcoded authentication
-  // Replace with the line below when backend is connected
-  // const { isAuthenticated, loading } = useAuth();
-  const isAuthenticated = true; // Hardcoded for development
-  const loading = false; // Hardcoded for development
+  const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
-    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -33,11 +35,11 @@ const App = () => {
         {/* Auth Routes */}
         <Route
           path="/login"
-          element={!isAuthenticated ? <Login /> : <Navigate to="/" />}
+          element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />}
         />
         <Route
           path="/register"
-          element={!isAuthenticated ? <Register /> : <Navigate to="/" />}
+          element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />}
         />
 
         {/* Protected Routes */}
@@ -47,12 +49,18 @@ const App = () => {
             isAuthenticated ? (
               <MainLayout>
                 <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/email-integration" element={<EmailIntegration />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route
+                    path="/email-integration"
+                    element={<EmailIntegration />}
+                  />
                   <Route path="/create-job" element={<CreateJob />} />
                   <Route path="/manage-resumes" element={<ManageResumes />} />
                   <Route path="/setup-criteria" element={<SetupCriteria />} />
-                  <Route path="/interview-scheduler" element={<InterviewScheduler />} />
+                  <Route
+                    path="/interview-scheduler"
+                    element={<InterviewScheduler />}
+                  />
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="*" element={<Navigate to="/" />} />

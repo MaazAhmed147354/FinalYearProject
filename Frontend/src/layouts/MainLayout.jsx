@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   BarChart,
   Mail,
@@ -9,22 +9,54 @@ import {
   Bell,
   User,
   ChevronDown,
-  ClipboardList,
+  LogOut,
   Sliders,
   PieChart,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { useAuth } from "../contexts/AuthContext";
 
 const MainLayout = ({ children }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const location = useLocation();
+  const { user, logout } = useAuth(); // Add this line
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: BarChart, path: "/" },
-    { id: "email", label: "Email Integration", icon: Mail, path: "/email-integration" },
-    { id: "resumes", label: "Resume Management", icon: FileText, path: "/manage-resumes" },
-    { id: "criteria", label: "Setup Criteria", icon: Sliders, path: "/setup-criteria" },
-    { id: "calendar", label: "Interview Scheduler", icon: Calendar, path: "/interview-scheduler" },
+    { id: "dashboard", label: "Dashboard", icon: BarChart, path: "/dashboard" },
+    {
+      id: "email",
+      label: "Email Integration",
+      icon: Mail,
+      path: "/email-integration",
+    },
+    {
+      id: "resumes",
+      label: "Resume Management",
+      icon: FileText,
+      path: "/manage-resumes",
+    },
+    {
+      id: "criteria",
+      label: "Setup Criteria",
+      icon: Sliders,
+      path: "/setup-criteria",
+    },
+    {
+      id: "calendar",
+      label: "Interview Scheduler",
+      icon: Calendar,
+      path: "/interview-scheduler",
+    },
     { id: "reports", label: "Reports", icon: PieChart, path: "/reports" },
     { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
   ];
@@ -36,9 +68,7 @@ const MainLayout = ({ children }) => {
         <div className="max-w-full px-4">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <span className="text-xl font-bold text-gray-800">
-                ResuMatch
-              </span>
+              <span className="text-xl font-bold text-gray-800">ResuMatch</span>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="sm" className="relative">
@@ -53,29 +83,29 @@ const MainLayout = ({ children }) => {
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
                 >
                   <User className="h-5 w-5" />
-                  <span className="hidden md:block">Maaz Ahmed</span>
+                  <span className="hidden md:block">
+                    {user?.email || "User"}
+                  </span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
-                    <a
-                      href="#profile"
+                    <Link
+                      to="/settings"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    >
-                      Your Profile
-                    </a>
-                    <a
-                      href="#settings"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsProfileOpen(false)}
                     >
                       Settings
-                    </a>
-                    <a
-                      href="#logout"
-                      className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
                     >
-                      Sign out
-                    </a>
+                      <div className="flex items-center">
+                        <LogOut className="h-4 w-4 mr-2" />
+                        Sign out
+                      </div>
+                    </button>
                   </div>
                 )}
               </div>
