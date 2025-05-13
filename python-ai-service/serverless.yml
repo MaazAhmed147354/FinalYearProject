@@ -1,4 +1,5 @@
 # python-ai-service/serverless.yml
+
 service: cv-evaluation-service
 
 provider:
@@ -10,14 +11,16 @@ provider:
 functions:
   parseResume:
     handler: handler.parse_resume
+    timeout: 300  # Increased to 3 minutes
     events:
       - http:
           path: parse-resume
           method: post
           cors: true
-  
+
   evaluateResume:
     handler: handler.evaluate_resume
+    timeout: 180  # Increased to 3 minutes
     events:
       - http:
           path: evaluate-resume

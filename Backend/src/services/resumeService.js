@@ -35,20 +35,18 @@ exports.uploadResume = async (resumeData, file) => {
     // Create upload directory if it doesn't exist
     const uploadDir = path.join(__dirname, "../../uploads/resumes");
     await mkdir(uploadDir, { recursive: true });
-
     // Generate unique filename
-    const fileName = `${uuidv4()}_${file.originalname.replace(/\s+/g, "_")}`;
+    const fileName =
+      `${uuidv4()}_${file.originalname.replace(/\s+/g, "_")}`;
     const filePath = path.join(uploadDir, fileName);
-
     // Save file
-    const fileBuffer = file.buffer || Buffer.from(file.data, "base64");
+    const fileBuffer = file.buffer || Buffer.from(file.data,
+      "base64");
     await writeFile(filePath, fileBuffer);
-
     // Check if candidate already exists
     let candidate = await Candidate.findOne({
       where: { email: resumeData.candidate_email },
     });
-
     // Create candidate if not exists
     if (!candidate) {
       candidate = await Candidate.create({
@@ -59,10 +57,8 @@ exports.uploadResume = async (resumeData, file) => {
         source_email_id: resumeData.source_email_id || null,
       });
     }
-
     // Parse resume using Python API
     const parsedData = await parseResume(filePath);
-
     // Create resume record
     const resume = await Resume.create({
       candidate_id: candidate.id,
@@ -74,12 +70,10 @@ exports.uploadResume = async (resumeData, file) => {
       education: parsedData.education || [],
       status: "pending",
     });
-
     // Score the resume if job_id is provided
     if (resumeData.job_id) {
       await scoreResume(resume.id, resumeData.job_id);
     }
-
     return {
       id: resume.id,
       candidate_name: candidate.name,
@@ -102,27 +96,40 @@ exports.uploadResume = async (resumeData, file) => {
  */
 const parseResume = async (filePath) => {
   try {
-    console.log(
-      `Calling Python API to parse resume at ${PYTHON_API_BASE_URL}/parse-resume`
+    console.log(`Calling Python API to parse resume at ${PYTHON_API_BASE_URL}/parse-resume`);
+    
+    // Call Python API with increased timeout
+    const response = await axios.post(
+      `${PYTHON_API_BASE_URL}/parse-resume`,
+      { file_path: filePath },
+      { timeout: 290000 } // 290 seconds (just under 5 minutes)
     );
-
-    // Call Python API with file path
-    const response = await axios.post(`${PYTHON_API_BASE_URL}/parse-resume`, {
-      file_path: filePath,
-    });
-
-    // Return parsed data
+    
     return response.data;
   } catch (error) {
     console.error("Error parsing resume:", error.message);
-    // Fallback to basic parsing if API fails
+    
+    // Improved error handling
+    if (error.code === 'ECONNABORTED' || (error.response && error.response.status === 504)) {
+      console.log('Timeout occurred while processing PDF');
+      return {
+        summary: "The resume could not be processed automatically due to its complexity or size. Please try with a simpler PDF format.",
+        experience: [],
+        education: [],
+        skills: [],
+        accomplishments: [],
+        total_experience_years: 0,
+        processing_error: true
+      };
+    }
+    
     return {
       summary: "Failed to parse resume automatically.",
       experience: [],
       education: [],
       skills: [],
       accomplishments: [],
-      total_experience_years: 0,
+      total_experience_years: 0
     };
   }
 };
@@ -150,12 +157,10 @@ const scoreResume = async (resumeId, jobId) => {
         },
       ],
     });
-
     if (!resume || !criteria) {
       console.log("Resume or criteria not found");
       return null;
     }
-
     // Prepare resume data for evaluation
     const resumeData = {
       skills: resume.skills || [],
@@ -164,7 +169,6 @@ const scoreResume = async (resumeId, jobId) => {
       parsed_data: resume.parsed_data || {},
       summary: resume.parsed_data?.summary || "",
     };
-
     // Prepare criteria data for evaluation
     const criteriaData = {
       required_skills: criteria.skills.map((s) => s.skill_name),
@@ -179,33 +183,31 @@ const scoreResume = async (resumeId, jobId) => {
       experience_weight: criteria.experience_weight || 0,
       keywords: criteria.keywords.map((k) => k.keyword),
     };
-
     console.log(`Calling Python API to evaluate resume at ${PYTHON_API_BASE_URL}/evaluate-resume`);
-
     // Call Python API with improved error handling
     try {
-      const response = await axios.post(`${PYTHON_API_BASE_URL}/evaluate-resume`, {
-        resume_data: resumeData,
-        requirements: criteriaData,
-      });
-
+      const response = await axios.post(
+        `${PYTHON_API_BASE_URL}/evaluate-resume`,
+        {
+          resume_data: resumeData,
+          requirements: criteriaData,
+        },
+        {
+          timeout: 120000, // Added 2 minute timeout for this request as well
+        }
+      );
       console.log("Evaluation response received");
-
       // Process evaluation results
       const evalResults = response.data;
-
       // Log response for debugging
       console.log(`Response received: ${JSON.stringify(evalResults).substring(0, 100)}...`);
-
       // Extract score information - assuming the first report is for our resume
       const report = evalResults.individual_reports && evalResults.individual_reports[0]?.report;
       if (!report) {
         console.log("No evaluation report in response");
         return null;
       }
-
       const evalSummary = report.evaluation_summary;
-
       // Create score record
       const score = await ResumeScore.create({
         resume_id: resumeId,
@@ -217,7 +219,6 @@ const scoreResume = async (resumeId, jobId) => {
         missing_skills: [], // Update based on actual data structure
         matching_skills: [], // Update based on actual data structure
       });
-
       return score;
     } catch (axiosError) {
       console.error("Error calling evaluation API:", axiosError.message);
@@ -242,15 +243,12 @@ exports.listResumes = async (filters = {}) => {
   try {
     // Build where clause from filters
     const whereClause = {};
-
     if (filters.status) {
       whereClause.status = filters.status;
     }
-
     if (filters.job_id) {
       whereClause.job_id = filters.job_id;
     }
-
     // Get resumes with candidate and job information
     const resumes = await Resume.findAll({
       where: whereClause,
@@ -359,10 +357,8 @@ exports.associateResumeWithJob = async (id, jobId) => {
       throw new Error("Job not found");
     }
     await resume.update({ job_id: jobId });
-
     // Score the resume against the new job
     await scoreResume(id, jobId);
-
     return resume;
   } catch (error) {
     throw error;
@@ -404,6 +400,46 @@ exports.getTopScoredResumesForJob = async (jobId, limit = 10) => {
       limit,
     });
     return resumes;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
+ * Download resume file
+ * @param {number} id - Resume ID
+ * @returns {Promise<Object>} API response with file
+ */
+exports.downloadResumeFile = async (id) => {
+  try {
+    // Get resume details
+    const resume = await Resume.findByPk(id);
+   
+    if (!resume) {
+      throw new Error("Resume not found");
+    }
+   
+    // Validate file path
+    if (!resume.file_path) {
+      throw new Error("Resume file not found");
+    }
+   
+    // Read file (implementation depends on your storage solution)
+    // For local files:
+    const fs = require('fs');
+    const fileContent = fs.readFileSync(resume.file_path);
+    const fileName = resume.file_path.split('/').pop();
+   
+    // Return file
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/pdf', // Adjust based on file type
+        'Content-Disposition': `attachment; filename="${fileName}"`
+      },
+      body: fileContent.toString('base64'),
+      isBase64Encoded: true
+    };
   } catch (error) {
     throw error;
   }
