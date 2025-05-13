@@ -16,6 +16,7 @@ const ResumeScore = require('./resumeScoreModel');
 // Define all associations
 // These associations are already defined in individual models, but we can
 // add any additional associations here if needed
+// Define associations
 
 const models = {
   User,

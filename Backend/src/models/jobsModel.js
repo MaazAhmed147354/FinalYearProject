@@ -27,7 +27,14 @@ const Job = sequelize.define('Job', {
     allowNull: true,
     get() {
       const rawValue = this.getDataValue('required_skills');
-      return rawValue ? JSON.parse(rawValue) : [];
+      if (!rawValue) return [];
+      
+      try {
+        return JSON.parse(rawValue);
+      } catch (e) {
+        // Handle comma-separated strings
+        return rawValue.split(',').map(skill => skill.trim());
+      }
     },
     set(value) {
       this.setDataValue('required_skills', JSON.stringify(value));

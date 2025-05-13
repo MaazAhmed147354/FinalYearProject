@@ -12,13 +12,13 @@
  * @param {string} message - A message to include in the response (optional)
  * @returns {object} - The structured response object
  */
-const successResponse = (statusCode = 200, data = {}, message = '') => {
+const successResponse = (statusCode = 200, message = '', data = {}) => {
     return {
         statusCode,
         body: JSON.stringify({
-            success: true,
-            message: message || 'Operation successful',
-            data,
+        success: true,
+        message,
+        data,
         }),
     };
 };

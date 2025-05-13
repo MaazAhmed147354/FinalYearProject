@@ -1,5 +1,3 @@
-// C:\Users\abdul\Downloads\FinalYearProject-main\FinalYearProject-main\Frontend\src\App.jsx
-
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";

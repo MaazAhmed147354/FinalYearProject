@@ -5,7 +5,7 @@ const auth = require("../middlewares/authMiddleware");
 
 // Schedule Interview
 module.exports.scheduleInterview = async (event) => {
-  const authResult = await auth.authorizeToken(event, ['hr', 'manager']);
+  const authResult = await auth.authorizeToken(event, ['hr']);
   if (authResult.statusCode !== 202) return authResult;
 
   return await interviewController.scheduleInterview(event);
@@ -37,7 +37,7 @@ module.exports.getInterviewDetails = async (event) => {
 
 // Cancel Interview
 module.exports.cancelInterview = async (event) => {
-  const authResult = await auth.authorizeToken(event, ['hr', 'manager']);
+  const authResult = await auth.authorizeToken(event, ['hr']);
   if (authResult.statusCode !== 202) return authResult;
 
   return await interviewController.cancelInterview(event);
@@ -45,7 +45,7 @@ module.exports.cancelInterview = async (event) => {
 
 // Complete Interview
 module.exports.completeInterview = async (event) => {
-  const authResult = await auth.authorizeToken(event, ['manager']);
+  const authResult = await auth.authorizeToken(event, ['hr']);
   if (authResult.statusCode !== 202) return authResult;
 
   return await interviewController.completeInterview(event);

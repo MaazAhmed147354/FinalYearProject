@@ -2,6 +2,32 @@ const interviewService = require("../services/interviewService");
 const responseHelper = require("../utils/responseHelper");
 
 /**
+ * Helper function to transform interview response
+ * @param {Object|Array} interview - Interview object or array of interviews
+ * @returns {Object|Array} Transformed interview(s) with participants renamed to interviewers
+ */
+const transformInterviewResponse = (interview) => {
+  // Handle arrays of interviews
+  if (Array.isArray(interview)) {
+    return interview.map(transformInterviewResponse);
+  }
+  
+  // Handle null/undefined
+  if (!interview) return interview;
+  
+  // Create a deep copy to avoid mutating the original
+  const transformed = JSON.parse(JSON.stringify(interview));
+  
+  // Rename participants to interviewers
+  if (transformed.participants) {
+    transformed.interviewers = transformed.participants;
+    delete transformed.participants;
+  }
+  
+  return transformed;
+};
+
+/**
  * Schedule a new interview
  * @param {Object} event - API Gateway event
  * @returns {Object} API Gateway response
@@ -20,7 +46,9 @@ exports.scheduleInterview = async (event) => {
     }
 
     const interview = await interviewService.scheduleInterview(interviewData);
-    return responseHelper.successResponse(201, "Interview scheduled successfully", interview);
+    const transformedInterview = transformInterviewResponse(interview);
+    
+    return responseHelper.successResponse(201, "Interview scheduled successfully", transformedInterview);
   } catch (error) {
     console.error("Error in scheduleInterview controller:", error);
     
@@ -51,7 +79,9 @@ exports.listInterviews = async (event) => {
   try {
     const filters = event.queryStringParameters || {};
     const interviews = await interviewService.listInterviews(filters);
-    return responseHelper.successResponse(200, "Interviews retrieved successfully", interviews);
+    const transformedInterviews = transformInterviewResponse(interviews);
+    
+    return responseHelper.successResponse(200, "Interviews retrieved successfully", transformedInterviews);
   } catch (error) {
     console.error("Error in listInterviews controller:", error);
     return responseHelper.errorResponse(500, "Failed to retrieve interviews", error.message);
@@ -72,9 +102,11 @@ exports.getInterviewDetails = async (event) => {
         id: "Interview ID is required"
       });
     }
-
+    
     const interview = await interviewService.getInterviewDetails(id);
-    return responseHelper.successResponse(200, "Interview details retrieved successfully", interview);
+    const transformedInterview = transformInterviewResponse(interview);
+    
+    return responseHelper.successResponse(200, "Interview details retrieved successfully", transformedInterview);
   } catch (error) {
     console.error("Error in getInterviewDetails controller:", error);
     
@@ -101,9 +133,11 @@ exports.updateInterview = async (event) => {
         id: "Interview ID is required"
       });
     }
-
+    
     const updatedInterview = await interviewService.updateInterview(id, interviewData);
-    return responseHelper.successResponse(200, "Interview updated successfully", updatedInterview);
+    const transformedInterview = transformInterviewResponse(updatedInterview);
+    
+    return responseHelper.successResponse(200, "Interview updated successfully", transformedInterview);
   } catch (error) {
     console.error("Error in updateInterview controller:", error);
     
@@ -132,7 +166,9 @@ exports.cancelInterview = async (event) => {
     }
 
     const cancelledInterview = await interviewService.cancelInterview(id, reason);
-    return responseHelper.successResponse(200, "Interview cancelled successfully", cancelledInterview);
+    const transformedInterview = transformInterviewResponse(cancelledInterview);
+    
+    return responseHelper.successResponse(200, "Interview cancelled successfully", transformedInterview);
   } catch (error) {
     console.error("Error in cancelInterview controller:", error);
     
@@ -161,7 +197,9 @@ exports.completeInterview = async (event) => {
     }
 
     const completedInterview = await interviewService.completeInterview(id, feedback);
-    return responseHelper.successResponse(200, "Interview completed successfully", completedInterview);
+    const transformedInterview = transformInterviewResponse(completedInterview);
+    
+    return responseHelper.successResponse(200, "Interview completed successfully", transformedInterview);
   } catch (error) {
     console.error("Error in completeInterview controller:", error);
     

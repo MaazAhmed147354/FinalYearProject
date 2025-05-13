@@ -28,7 +28,14 @@ const Resume = sequelize.define('Resume', {
     allowNull: true,
     get() {
       const rawValue = this.getDataValue('parsed_data');
-      return rawValue ? JSON.parse(rawValue) : null;
+      if (!rawValue) return null;
+      
+      try {
+        return JSON.parse(rawValue);
+      } catch (e) {
+        console.warn(`Invalid JSON in parsed_data for resume ${this.id}: ${rawValue}`);
+        return {};  // Return empty object as fallback
+      }
     },
     set(value) {
       this.setDataValue('parsed_data', JSON.stringify(value));
@@ -43,7 +50,14 @@ const Resume = sequelize.define('Resume', {
     allowNull: true,
     get() {
       const rawValue = this.getDataValue('skills');
-      return rawValue ? JSON.parse(rawValue) : [];
+      if (!rawValue) return [];
+      
+      try {
+        return JSON.parse(rawValue);
+      } catch (e) {
+        console.warn(`Invalid JSON in skills for resume ${this.id}: ${rawValue}`);
+        return [];  // Return empty array as fallback
+      }
     },
     set(value) {
       this.setDataValue('skills', JSON.stringify(value));
@@ -54,7 +68,14 @@ const Resume = sequelize.define('Resume', {
     allowNull: true,
     get() {
       const rawValue = this.getDataValue('education');
-      return rawValue ? JSON.parse(rawValue) : [];
+      if (!rawValue) return [];
+      
+      try {
+        return JSON.parse(rawValue);
+      } catch (e) {
+        console.warn(`Invalid JSON in education for resume ${this.id}: ${rawValue}`);
+        return [];  // Return empty array as fallback
+      }
     },
     set(value) {
       this.setDataValue('education', JSON.stringify(value));
@@ -82,4 +103,6 @@ const Resume = sequelize.define('Resume', {
 Resume.belongsTo(Candidate, { foreignKey: 'candidate_id', as: 'candidate' });
 Resume.belongsTo(Job, { foreignKey: 'job_id', as: 'job' });
 
+
 module.exports = Resume;
+
