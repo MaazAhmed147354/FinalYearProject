@@ -17,6 +17,8 @@ const ResumeScore = require('./resumeScoreModel');
 // These associations are already defined in individual models, but we can
 // add any additional associations here if needed
 // Define associations
+Resume.hasMany(ResumeScore, { foreignKey: 'resume_id', as: 'scores' });
+
 
 const models = {
   User,
