@@ -244,7 +244,7 @@ functions:
     timeout: 30
     events:
       - http:
-          path: resumes/{id}/status
+          path: resumes/status
           method: put
           cors:
             origin: "http://localhost:3000"

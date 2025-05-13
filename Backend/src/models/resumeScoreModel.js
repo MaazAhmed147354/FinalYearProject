@@ -40,7 +40,21 @@ const ResumeScore = sequelize.define('ResumeScore', {
     allowNull: true,
     get() {
       const rawValue = this.getDataValue('missing_skills');
-      return rawValue ? JSON.parse(rawValue) : [];
+      if (!rawValue) return [];
+      
+      try {
+        return JSON.parse(rawValue);
+      } catch (e) {
+        console.warn(`Invalid JSON in missing_skills for score ${this.id}: ${rawValue}`);
+        // Check if rawValue is a string before splitting
+        if (typeof rawValue === 'string') {
+          return rawValue.split(',').map(skill => skill.trim());
+        } else {
+          // If it's not a string, return an empty array
+          console.warn(`Non-string value in missing_skills: ${typeof rawValue}`);
+          return [];
+        }
+      }
     },
     set(value) {
       this.setDataValue('missing_skills', JSON.stringify(value));
@@ -51,7 +65,21 @@ const ResumeScore = sequelize.define('ResumeScore', {
     allowNull: true,
     get() {
       const rawValue = this.getDataValue('matching_skills');
-      return rawValue ? JSON.parse(rawValue) : [];
+      if (!rawValue) return [];
+      
+      try {
+        return JSON.parse(rawValue);
+      } catch (e) {
+        console.warn(`Invalid JSON in matching_skills for score ${this.id}: ${rawValue}`);
+        // Check if rawValue is a string before splitting
+        if (typeof rawValue === 'string') {
+          return rawValue.split(',').map(skill => skill.trim());
+        } else {
+          // If it's not a string, return an empty array
+          console.warn(`Non-string value in matching_skills: ${typeof rawValue}`);
+          return [];
+        }
+      }
     },
     set(value) {
       this.setDataValue('matching_skills', JSON.stringify(value));
@@ -67,7 +95,7 @@ const ResumeScore = sequelize.define('ResumeScore', {
 });
 
 // Define associations
-ResumeScore.belongsTo(Resume, { foreignKey: 'resume_id', as: 'resume' });
+// ResumeScore.belongsTo(Resume, { foreignKey: 'resume_id', as: 'resume' });
 ResumeScore.belongsTo(CriteriaSet, { foreignKey: 'criteria_id', as: 'criteria' });
 
 module.exports = ResumeScore;
