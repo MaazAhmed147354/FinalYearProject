@@ -70,6 +70,35 @@ functions:
               - X-Custom-Header
             allowCredentials: true
 
+  # Dashboard Functions
+  getDashboardStats:
+    handler: src/handlers/dashboardHandler.getDashboardStats
+    timeout: 30
+    events:
+      - http:
+          path: dashboard/stats
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  importJobOpenings:
+    handler: src/handlers/dashboardHandler.importJobOpenings
+    timeout: 30
+    events:
+      - http:
+          path: dashboard/import-jobs
+          method: post
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
   # Job Functions
   createJob:
     handler: src/handlers/jobHandler.createJob
