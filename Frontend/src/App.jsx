@@ -8,7 +8,7 @@ import {
 import MainLayout from "./layouts/MainLayout";
 import Dashboard from "./pages/dashboard/Dashboard";
 import EmailIntegration from "./pages/email/EmailIntegration";
-import CreateJob from "./pages/jobs/CreateJobs";
+import CreateJobWithCriteria from "./pages/jobs/CreateJobWithCriteria";
 import ManageResumes from "./pages/resumes/ManageResumes";
 import SetupCriteria from "./pages/resumes/SetupCriteria";
 import InterviewScheduler from "./pages/scheduling/Scheduling";
@@ -54,7 +54,7 @@ const App = () => {
                     path="/email-integration"
                     element={<EmailIntegration />}
                   />
-                  <Route path="/create-job" element={<CreateJob />} />
+                  <Route path="/create-job" element={<CreateJobWithCriteria />} />
                   <Route path="/manage-resumes" element={<ManageResumes />} />
                   <Route path="/setup-criteria" element={<SetupCriteria />} />
                   <Route
@@ -63,7 +63,7 @@ const App = () => {
                   />
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/settings" element={<Settings />} />
-                  <Route path="*" element={<Navigate to="/" />} />
+                  <Route path="*" element={<Navigate to="/dashboard" />} />
                 </Routes>
               </MainLayout>
             ) : (
