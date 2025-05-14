@@ -17,7 +17,6 @@ import Settings from "./pages/settings/Settings";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import { useAuth } from "./contexts/AuthContext";
-import { Toaster } from 'react-hot-toast';
 
 const App = () => {
   const { isAuthenticated, loading } = useAuth();
@@ -31,54 +30,18 @@ const App = () => {
   }
 
   return (
-    <>
-      <Toaster position="top-right" />
-      <Router>
-        <Routes>
-          {/* Auth Routes */}
-          <Route
-            path="/login"
-            element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />}
-          />
-          <Route
-            path="/register"
-            element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />}
-          />
+    <Router>
+      <Routes>
+        {/* Auth Routes */}
+        <Route
+          path="/login"
+          element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />}
+        />
+        <Route
+          path="/register"
+          element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />}
+        />
 
-<<<<<<< HEAD
-          {/* Protected Routes */}
-          <Route
-            path="/*"
-            element={
-              isAuthenticated ? (
-                <MainLayout>
-                  <Routes>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route
-                      path="/email-integration"
-                      element={<EmailIntegration />}
-                    />
-                    <Route path="/create-job" element={<CreateJob />} />
-                    <Route path="/manage-resumes" element={<ManageResumes />} />
-                    <Route path="/setup-criteria" element={<SetupCriteria />} />
-                    <Route
-                      path="/interview-scheduler"
-                      element={<InterviewScheduler />}
-                    />
-                    <Route path="/reports" element={<Reports />} />
-                    <Route path="/settings" element={<Settings />} />
-                    <Route path="*" element={<Navigate to="/" />} />
-                  </Routes>
-                </MainLayout>
-              ) : (
-                <Navigate to="/login" />
-              )
-            }
-          />
-        </Routes>
-      </Router>
-    </>
-=======
         {/* Protected Routes */}
         <Route
           path="/*"
@@ -110,8 +73,7 @@ const App = () => {
         />
       </Routes>
     </Router>
->>>>>>> 7528a2845d1abb6ce631ef06701e9d67a0a07cb2
   );
 };
 
-export default App;
+export default App
