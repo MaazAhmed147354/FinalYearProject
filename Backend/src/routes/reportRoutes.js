@@ -7,7 +7,6 @@ const auth = require("../middlewares/authMiddleware");
 module.exports.generateCandidateReport = async (event) => {
   const authResult = await auth.authorizeToken(event);
   if (authResult.statusCode !== 202) return authResult;
-
   return await reportController.generateCandidateReport(event);
 };
 
@@ -15,7 +14,6 @@ module.exports.generateCandidateReport = async (event) => {
 module.exports.compareCandidates = async (event) => {
   const authResult = await auth.authorizeToken(event);
   if (authResult.statusCode !== 202) return authResult;
-
   return await reportController.compareCandidates(event);
 };
 
@@ -23,7 +21,6 @@ module.exports.compareCandidates = async (event) => {
 module.exports.getReportsForResume = async (event) => {
   const authResult = await auth.authorizeToken(event);
   if (authResult.statusCode !== 202) return authResult;
-
   return await reportController.getReportsForResume(event);
 };
 
@@ -31,7 +28,6 @@ module.exports.getReportsForResume = async (event) => {
 module.exports.getReport = async (event) => {
   const authResult = await auth.authorizeToken(event);
   if (authResult.statusCode !== 202) return authResult;
-
   return await reportController.getReport(event);
 };
 
@@ -39,6 +35,5 @@ module.exports.getReport = async (event) => {
 module.exports.markReportAsSent = async (event) => {
   const authResult = await auth.authorizeToken(event);
   if (authResult.statusCode !== 202) return authResult;
-
   return await reportController.markReportAsSent(event);
 };

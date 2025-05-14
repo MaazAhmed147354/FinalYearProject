@@ -2,39 +2,10 @@
 
 const axios = require('axios');
 const { Resume, CriteriaSet } = require('../models');
+const resumeService = require('../services/resumeService');
 
 // Configure Python API endpoint
 const PYTHON_API_BASE_URL = process.env.PYTHON_API_URL || 'http://localhost:3001/dev';
-
-/**
- * Parse resume file using Python API
- * @param {string} filePath - Path to resume file
- * @returns {Promise<Object>} Parsed resume data
- */
-const parseResume = async (filePath) => {
-  try {
-    console.log(`Calling Python API to parse resume at ${PYTHON_API_BASE_URL}/parse-resume`);
-    
-    // Call Python API with file path
-    const response = await axios.post(`${PYTHON_API_BASE_URL}/parse-resume`, {
-      file_path: filePath
-    });
-    
-    // Return parsed data
-    return response.data;
-  } catch (error) {
-    console.error('Error parsing resume:', error.message);
-    // Fallback to basic parsing if API fails
-    return {
-      summary: 'Failed to parse resume automatically.',
-      experience: [],
-      education: [],
-      skills: [],
-      accomplishments: [],
-      total_experience_years: 0
-    };
-  }
-};
 
 /**
  * Evaluate resume using Python API
@@ -81,7 +52,57 @@ const evaluateResume = async (resume, criteria) => {
   }
 };
 
+/**
+ * Process a resume using the Python AI service
+ * @param {Object} event - API Gateway event
+ * @param {Object} context - Lambda context
+ * @returns {Promise<Object>} Lambda response
+ */
+const processResume = async (event, context) => {
+  try {
+    const body = JSON.parse(event.body);
+    const { file_path } = body;
+
+    if (!file_path) {
+      return {
+        statusCode: 400,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify({ error: 'Missing file_path in request body' })
+      };
+    }
+
+    // Parse resume using resumeService
+    const parsedData = await resumeService.parseResume(file_path);
+
+    // Return parsed data
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify(parsedData)
+    };
+  } catch (error) {
+    console.error('Error processing resume:', error);
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({
+        error: 'Failed to process resume',
+        details: error.message
+      })
+    };
+  }
+};
+
 module.exports = {
-  parseResume,
-  evaluateResume
+  evaluateResume,
+  processResume
 };

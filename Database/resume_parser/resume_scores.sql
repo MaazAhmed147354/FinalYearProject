@@ -33,6 +33,8 @@ CREATE TABLE `resume_scores` (
   `keyword_score` decimal(5,2) NOT NULL,
   `missing_skills` json DEFAULT NULL,
   `matching_skills` json DEFAULT NULL,
+  `strengths` TEXT DEFAULT NULL,
+  `improvements` TEXT DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `fk_resume_id` (`resume_id`),
@@ -51,10 +53,10 @@ LOCK TABLES `resume_scores` WRITE;
 /*!40000 ALTER TABLE `resume_scores` DISABLE KEYS */;
 
 INSERT INTO `resume_scores` 
-(`resume_id`, `criteria_id`, `total_score`, `skills_score`, `experience_score`, `keyword_score`, `missing_skills`, `matching_skills`)
+(`resume_id`, `criteria_id`, `total_score`, `skills_score`, `experience_score`, `keyword_score`, `missing_skills`, `matching_skills`, `strengths`, `improvements`)
 VALUES
-(1, 1, 85.50, 30.00, 40.00, 15.50, '["Leadership", "Agile"]', '["HRIS", "Recruitment"]'),
-(2, 2, 68.75, 25.00, 30.00, 13.75, '["Redux"]', '["React", "TypeScript"]');
+(1, 1, 85.50, 30.00, 40.00, 15.50, '["Leadership", "Agile"]', '["HRIS", "Recruitment"]', '["Strong recruitment background", "HRIS expertise"]', '["Could benefit from leadership training", "Consider Agile certification"]'),
+(2, 2, 68.75, 25.00, 30.00, 13.75, '["Redux"]', '["React", "TypeScript"]', '["Solid React fundamentals", "TypeScript proficiency"]', '["Need to learn Redux", "More complex project experience recommended"]');
 
 /*!40000 ALTER TABLE `resume_scores` ENABLE KEYS */;
 UNLOCK TABLES;

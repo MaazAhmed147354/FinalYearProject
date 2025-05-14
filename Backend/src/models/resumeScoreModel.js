@@ -1,3 +1,6 @@
+// Implementation of the ResumeScore model to ensure proper data types
+// This ensures that the total_score and other score fields are always numbers
+
 "use strict";
 
 const { DataTypes } = require('sequelize');
@@ -20,69 +23,140 @@ const ResumeScore = sequelize.define('ResumeScore', {
     allowNull: false,
   },
   total_score: {
-    type: DataTypes.DECIMAL(5, 2),
+    type: DataTypes.FLOAT,
     allowNull: false,
+    defaultValue: 0,
+    get() {
+      // Ensure we always get a number
+      const val = this.getDataValue('total_score');
+      return val === null ? 0 : parseFloat(val);
+    }
   },
   skills_score: {
-    type: DataTypes.DECIMAL(5, 2),
+    type: DataTypes.FLOAT,
     allowNull: false,
+    defaultValue: 0,
+    get() {
+      const val = this.getDataValue('skills_score');
+      return val === null ? 0 : parseFloat(val);
+    }
   },
   experience_score: {
-    type: DataTypes.DECIMAL(5, 2),
+    type: DataTypes.FLOAT,
     allowNull: false,
+    defaultValue: 0,
+    get() {
+      const val = this.getDataValue('experience_score');
+      return val === null ? 0 : parseFloat(val);
+    }
   },
   keyword_score: {
-    type: DataTypes.DECIMAL(5, 2),
+    type: DataTypes.FLOAT,
     allowNull: false,
+    defaultValue: 0,
+    get() {
+      const val = this.getDataValue('keyword_score');
+      return val === null ? 0 : parseFloat(val);
+    }
   },
   missing_skills: {
     type: DataTypes.TEXT,
     allowNull: true,
+    defaultValue: '[]',
     get() {
       const rawValue = this.getDataValue('missing_skills');
       if (!rawValue) return [];
-      
+      if (Array.isArray(rawValue)) return rawValue;
       try {
         return JSON.parse(rawValue);
-      } catch (e) {
-        console.warn(`Invalid JSON in missing_skills for score ${this.id}: ${rawValue}`);
-        // Check if rawValue is a string before splitting
-        if (typeof rawValue === 'string') {
-          return rawValue.split(',').map(skill => skill.trim());
-        } else {
-          // If it's not a string, return an empty array
-          console.warn(`Non-string value in missing_skills: ${typeof rawValue}`);
-          return [];
-        }
+      } catch (error) {
+        console.error('Error parsing missing_skills:', error);
+        return [];
       }
     },
     set(value) {
-      this.setDataValue('missing_skills', JSON.stringify(value));
+      try {
+        const jsonStr = Array.isArray(value) ? JSON.stringify(value) : value;
+        this.setDataValue('missing_skills', jsonStr);
+      } catch (error) {
+        console.error('Error setting missing_skills:', error);
+        this.setDataValue('missing_skills', '[]');
+      }
     }
   },
   matching_skills: {
     type: DataTypes.TEXT,
     allowNull: true,
+    defaultValue: '[]',
     get() {
       const rawValue = this.getDataValue('matching_skills');
       if (!rawValue) return [];
-      
+      if (Array.isArray(rawValue)) return rawValue;
       try {
         return JSON.parse(rawValue);
-      } catch (e) {
-        console.warn(`Invalid JSON in matching_skills for score ${this.id}: ${rawValue}`);
-        // Check if rawValue is a string before splitting
-        if (typeof rawValue === 'string') {
-          return rawValue.split(',').map(skill => skill.trim());
-        } else {
-          // If it's not a string, return an empty array
-          console.warn(`Non-string value in matching_skills: ${typeof rawValue}`);
-          return [];
-        }
+      } catch (error) {
+        console.error('Error parsing matching_skills:', error);
+        return [];
       }
     },
     set(value) {
-      this.setDataValue('matching_skills', JSON.stringify(value));
+      try {
+        const jsonStr = Array.isArray(value) ? JSON.stringify(value) : value;
+        this.setDataValue('matching_skills', jsonStr);
+      } catch (error) {
+        console.error('Error setting matching_skills:', error);
+        this.setDataValue('matching_skills', '[]');
+      }
+    }
+  },
+  strengths: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    defaultValue: '[]',
+    get() {
+      const rawValue = this.getDataValue('strengths');
+      if (!rawValue) return [];
+      if (Array.isArray(rawValue)) return rawValue;
+      try {
+        return JSON.parse(rawValue);
+      } catch (error) {
+        console.error('Error parsing strengths:', error);
+        return [];
+      }
+    },
+    set(value) {
+      try {
+        const jsonStr = Array.isArray(value) ? JSON.stringify(value) : value;
+        this.setDataValue('strengths', jsonStr);
+      } catch (error) {
+        console.error('Error setting strengths:', error);
+        this.setDataValue('strengths', '[]');
+      }
+    }
+  },
+  improvements: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    defaultValue: '[]',
+    get() {
+      const rawValue = this.getDataValue('improvements');
+      if (!rawValue) return [];
+      if (Array.isArray(rawValue)) return rawValue;
+      try {
+        return JSON.parse(rawValue);
+      } catch (error) {
+        console.error('Error parsing improvements:', error);
+        return [];
+      }
+    },
+    set(value) {
+      try {
+        const jsonStr = Array.isArray(value) ? JSON.stringify(value) : value;
+        this.setDataValue('improvements', jsonStr);
+      } catch (error) {
+        console.error('Error setting improvements:', error);
+        this.setDataValue('improvements', '[]');
+      }
     }
   },
   created_at: {
@@ -91,11 +165,13 @@ const ResumeScore = sequelize.define('ResumeScore', {
   }
 }, {
   tableName: 'resume_scores',
-  timestamps: false,
+  timestamps: true,
+  createdAt: 'created_at',
+  updatedAt: false,
 });
 
 // Define associations
-// ResumeScore.belongsTo(Resume, { foreignKey: 'resume_id', as: 'resume' });
+ResumeScore.belongsTo(Resume, { foreignKey: 'resume_id', as: 'resume' });
 ResumeScore.belongsTo(CriteriaSet, { foreignKey: 'criteria_id', as: 'criteria' });
 
 module.exports = ResumeScore;

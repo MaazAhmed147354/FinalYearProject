@@ -18,148 +18,10 @@ import {
   X,
 } from "lucide-react";
 import React, { useState } from "react";
-
-// Create Job Modal Component
-const CreateJobModal = ({ isOpen, onClose, onSubmit }) => {
-  const [jobData, setJobData] = useState({
-    title: "",
-    department: "",
-    description: "",
-    startDate: "",
-    endDate: "",
-    requiredSkills: "",
-    qualifications: "",
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setJobData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(jobData);
-    onClose();
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-gray-400 bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Create New Job Opening</h2>
-          <Button className="hover:bg-gray-300 rounded-4xl p-1" variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Job Title</label>
-              <input
-                type="text"
-                name="title"
-                value={jobData.title}
-                onChange={handleChange}
-                className="w-full p-2 border rounded-md"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Department</label>
-              <select
-                name="department"
-                value={jobData.department}
-                onChange={handleChange}
-                className="w-full p-2 border rounded-md"
-                required
-              >
-                <option value="">Select Department</option>
-                <option value="engineering">Engineering</option>
-                <option value="product">Product</option>
-                <option value="design">Design</option>
-                <option value="marketing">Marketing</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Job Description</label>
-            <textarea
-              name="description"
-              value={jobData.description}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-md"
-              rows="4"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Start Date</label>
-              <input
-                type="date"
-                name="startDate"
-                value={jobData.startDate}
-                onChange={handleChange}
-                className="w-full p-2 border rounded-md"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">End Date</label>
-              <input
-                type="date"
-                name="endDate"
-                value={jobData.endDate}
-                onChange={handleChange}
-                className="w-full p-2 border rounded-md"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Required Skills</label>
-            <textarea
-              name="requiredSkills"
-              value={jobData.requiredSkills}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-md"
-              rows="3"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Qualifications</label>
-            <textarea
-              name="qualifications"
-              value={jobData.qualifications}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-md"
-              rows="3"
-            />
-          </div>
-
-          <div className="flex justify-end space-x-4">
-            <Button className="hover:bg-gray-300 p-2" type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" className="bg-blue-500 hover:bg-blue-600 p-2">
-              Create Job Opening
-            </Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
-  const [isCreateJobModalOpen, setIsCreateJobModalOpen] = useState(false);
+  const navigate = useNavigate();
   const [jobOpenings, setJobOpenings] = useState([
     {
       id: 1,
@@ -193,18 +55,6 @@ const Dashboard = () => {
     },
   ]);
 
-  const handleCreateJob = (newJobData) => {
-    const newJob = {
-      id: jobOpenings.length + 1,
-      ...newJobData,
-      status: "open",
-      applications: 0,
-      shortlisted: 0,
-      interviews: 0,
-    };
-    setJobOpenings([...jobOpenings, newJob]);
-  };
-
   return (
     <div className="min-h-screen bg-gray-100">
       <main className="p-8">
@@ -212,7 +62,7 @@ const Dashboard = () => {
         <div className="flex space-x-4 mb-8">
           <Button 
             className="bg-blue-500 hover:bg-blue-600 p-2"
-            onClick={() => setIsCreateJobModalOpen(true)}
+            onClick={() => navigate("/create-job")}
           >
             <Plus className="w-4 h-4 mr-2" />
             Create Job Opening
@@ -335,13 +185,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </main>
-
-      {/* Create Job Modal */}
-      <CreateJobModal
-        isOpen={isCreateJobModalOpen}
-        onClose={() => setIsCreateJobModalOpen(false)}
-        onSubmit={handleCreateJob}
-      />
     </div>
   );
 };

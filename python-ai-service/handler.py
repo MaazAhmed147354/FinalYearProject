@@ -6,15 +6,21 @@ import pdfplumber
 import re
 import traceback
 import logging
+import warnings
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# Suppress all pdfminer warnings
+logging.getLogger('pdfminer').setLevel(logging.ERROR)
+warnings.filterwarnings('ignore', category=UserWarning, module='pdfminer')
+warnings.filterwarnings('ignore', category=FutureWarning, module='re')
+
 def parse_resume(event, context):
     """
-    Parses a resume file
+    Lambda handler for parsing resumes
     Expected input:
       - file_path: Path to the PDF file
     """
@@ -380,9 +386,20 @@ def parse_pdf_to_cv_data(pdf_path):
                 'total_experience_years': 0
             }
         
+        # Configure pdfplumber settings with compatible parameters
+        laparams = {
+            'all_texts': True,
+            'detect_vertical': True,
+            'line_overlap': 0.5,
+            'char_margin': 2.0,
+            'line_margin': 0.5,
+            'word_margin': 0.1,
+            'boxes_flow': 0.5
+        }
+        
         # Open PDF with more robust error handling
         try:
-            with pdfplumber.open(pdf_path) as pdf:
+            with pdfplumber.open(pdf_path, laparams=laparams) as pdf:
                 # Adjust max pages based on file size
                 max_pages = 1 if file_size > 5_000_000 else min(3, len(pdf.pages))
                 logger.info(f"Processing {max_pages} pages from PDF")
@@ -391,14 +408,39 @@ def parse_pdf_to_cv_data(pdf_path):
                 extracted_text = []
                 for i in range(max_pages):
                     try:
-                        page_text = pdf.pages[i].extract_text()
-                        if page_text:
-                            extracted_text.append(page_text)
+                        page = pdf.pages[i]
+                        # Set default CropBox to MediaBox if missing
+                        if not hasattr(page, 'cropbox'):
+                            page.cropbox = page.mediabox
+                        # Extract text with better error handling
+                        try:
+                            page_text = page.extract_text(x_tolerance=3, y_tolerance=3)
+                            if page_text:
+                                # Clean up text
+                                page_text = ' '.join(page_text.split())  # Remove excessive whitespace
+                                extracted_text.append(page_text)
+                        except Exception as text_err:
+                            logger.warning(f"Error extracting text from page {i}: {str(text_err)}")
+                            continue
                     except Exception as e:
-                        logger.error(f"Error extracting page {i}: {str(e)}")
+                        logger.error(f"Error processing page {i}: {str(e)}")
                         continue
                 
                 text = "\n".join(extracted_text)
+                
+                # Add basic validation of extracted text
+                if not text or len(text.strip()) < 50:  # Minimum reasonable length
+                    logger.warning("Extracted text is too short or empty")
+                    return {
+                        'summary': 'Could not extract meaningful text from the PDF.',
+                        'experience': [{'duration': 'Not specified', 'description': 'Text extraction failed'}],
+                        'education': [{'degree': 'Not specified', 'institution': 'Not specified'}],
+                        'skills': ['Text extraction failed'],
+                        'total_experience_years': 0
+                    }
+                    
+                logger.info(f"Successfully extracted {len(text)} characters of text")
+                
         except Exception as pdf_err:
             logger.error(f"Error opening PDF: {str(pdf_err)}")
             return {
@@ -406,19 +448,6 @@ def parse_pdf_to_cv_data(pdf_path):
                 'experience': [{'duration': 'Not specified', 'description': 'Could not read PDF file'}],
                 'education': [{'degree': 'Not specified', 'institution': 'Not specified'}],
                 'skills': ['Not extracted due to file read error'],
-                'total_experience_years': 0
-            }
-        
-        logger.info(f"Extracted text length: {len(text)}")
-        
-        # If text is empty, return basic structure
-        if not text.strip():
-            logger.warning("Warning: Extracted empty text from PDF")
-            return {
-                'summary': 'No text could be extracted from this PDF.',
-                'experience': [{'duration': 'Not specified', 'description': 'No text extracted from PDF'}],
-                'education': [{'degree': 'Not specified', 'institution': 'Not specified'}],
-                'skills': ['Not extracted - no text in PDF'],
                 'total_experience_years': 0
             }
         
@@ -436,137 +465,66 @@ def parse_pdf_to_cv_data(pdf_path):
         if paragraphs:
             sections['summary'] = paragraphs[0].strip()
         
-        # Extract skills (simpler regex) with better fallback
+        # Extract skills (simpler regex)
         skills_match = re.search(r'(?i)skills[\s:]*(.+?)(?:\n\n|\Z)', text, re.DOTALL)
         if skills_match:
             skills_text = skills_match.group(1)
-            # Simple split by common delimiters and filter empty entries
+            # Simple split by common delimiters
             skills_list = [s.strip() for s in re.split(r'[,•\n]', skills_text) if s.strip()]
-            # Sanitize each skill
-            skills_list = [re.sub(r'[^\w\s\-.,:()/\'\"]', '', skill) for skill in skills_list]
             sections['skills'] = skills_list
         
-        # Ensure skills is populated
-        if not sections['skills']:
-            # Try to extract any keywords that might be skills
-            potential_skills = re.findall(r'(?:Java|Python|C\+\+|JavaScript|HTML|CSS|SQL|Excel|Word|PowerPoint|Management|Leadership|Communication|Analysis|Design|Development|Testing)', text)
-            sections['skills'] = list(set(potential_skills)) if potential_skills else ['No skills explicitly found in resume']
+        # Simple experience extraction with fixed regex
+        exp_pattern = r'(?i)((?:20|19)\d{2}\s*[-–—]\s*(?:(?:20|19)\d{2}|present|current|now))(.+?)(?=(?:(?:20|19)\d{2})|$)'
+        exp_matches = re.findall(exp_pattern, text, re.DOTALL | re.IGNORECASE)
         
-        # Simple experience extraction (limit to 3) with robust error handling
-        exp_matches = re.findall(r'(?i)((?:20|19)\d{2}\s*[------]\s*(?:20|19)\d{2}|(?:20|19)\d{2}\s*[------]\s*present)(.+?)(?=(?:20|19)\d{2}|\Z)', text, re.DOTALL)
-        
-        # If no experience matches found, try another approach
-        if not exp_matches:
-            # Look for common experience section headers and extract paragraphs after them
-            exp_section = re.search(r'(?i)(?:experience|work history|employment)[\s:]*(.+?)(?:(?:\n\n.*?(?:education|skills|projects|references))|$)', text, re.DOTALL)
-            if exp_section:
-                exp_text = exp_section.group(1)
-                # Split into paragraphs that might be individual experiences
-                exp_paragraphs = [p for p in exp_text.split('\n\n') if len(p.strip()) > 50]  # Minimum paragraph size
-                
-                # Create experience entries from paragraphs
-                for i, paragraph in enumerate(exp_paragraphs[:3]):  # Limit to 3
-                    sections['experience'].append({
-                        'duration': 'Not specified',
-                        'description': re.sub(r'[^\w\s\-.,:()/\'\"]', '', paragraph.strip())
-                    })
-        
-        # Process regular experience matches if found
-        for i, (duration, desc) in enumerate(exp_matches[:3]):
-            # Clean the text by removing problematic characters
-            duration_clean = re.sub(r'[^\w\s\------]', '', duration.strip())
-            desc_clean = re.sub(r'[^\w\s\-.,:()/\'\"]', '', desc.strip())
-            
+        # Process experience matches
+        for i, (duration, desc) in enumerate(exp_matches[:3]):  # Limit to 3 entries
             sections['experience'].append({
-                'duration': duration_clean,
-                'description': desc_clean
+                'duration': duration.strip(),
+                'description': desc.strip()
             })
         
-        # Ensure experience has at least one entry as a fallback
+        # Ensure experience has at least one entry
         if not sections['experience']:
             sections['experience'].append({
                 'duration': 'Not specified',
-                'description': 'Experience information could not be clearly extracted from this resume.'
+                'description': 'Experience information could not be extracted from this resume.'
             })
         
-        # Extract education with improved parsing
+        # Extract education (simplified)
         edu_section = re.search(r'(?i)education[\s:]*(.+?)(?:\n\n|\Z)', text, re.DOTALL)
         if edu_section:
             edu_text = edu_section.group(1)
-            
-            # Try multiple approaches to extract education info
-            degrees = re.findall(r'((?:B\.?S\.?|M\.?S\.?|Ph\.?D\.?|Bachelor|Master|Doctorate|Associate|MBA)[\s\S]*?)(?:\n\n|\Z)', edu_text, re.DOTALL)
-            
-            # If no matches, try a more general approach
-            if not degrees:
-                # Split by double newlines or typical education separators
-                degrees = [part.strip() for part in re.split(r'\n\n|\n(?=University|College|Institute|School)', edu_text) if part.strip()]
-            
-            # Use at most 2 entries
-            for degree_text in degrees[:2]:
-                # Clean the text by removing problematic characters
-                cleaned_degree = re.sub(r'[^\w\s\-.,:()/\'\"]', '', degree_text.strip())
-                
-                # Try to identify components
-                institution = ""
-                degree_part = cleaned_degree
-                
-                # Try to identify institution
-                university_match = re.search(r'(University|College|Institute|School)[\s\S]*?', cleaned_degree)
-                if university_match:
-                    institution = university_match.group(0).strip()
-                
-                # Add using a very simple structure to avoid JSON issues
-                sections['education'].append({
-                    'degree': degree_part[:150] if degree_part else "Not specified",  # Limit length
-                    'institution': institution[:150] if institution else "Not specified"  # Limit length
-                })
-        
-        # Ensure at least one education entry
-        if not sections['education']:
             sections['education'].append({
-                'degree': "Not specified",
-                'institution': "Education information could not be clearly extracted"
+                'degree': edu_text[:150].strip(),  # Limit length
+                'institution': 'Not specified'
+            })
+        else:
+            sections['education'].append({
+                'degree': 'Not specified',
+                'institution': 'Education information could not be extracted'
             })
         
-        # Calculate approximate experience years with better fallback
+        # Calculate total experience (simplified)
         total_experience_years = 0
         for exp in sections['experience']:
             duration_str = exp.get('duration', '')
-            # Simple calculation based on year range
             years_match = re.findall(r'(19|20)\d{2}', duration_str)
             if len(years_match) >= 2:
                 try:
                     start_year = int(years_match[0])
-                    end_year = int(years_match[1]) if 'present' not in duration_str.lower() else 2025
+                    end_year = int(years_match[1]) if not any(x in duration_str.lower() for x in ['present', 'current', 'now']) else 2024
                     total_experience_years += (end_year - start_year)
                 except (ValueError, IndexError):
                     pass
         
-        # If we couldn't calculate experience, estimate based on content
-        if total_experience_years == 0:
-            if len(sections['experience']) >= 3:
-                total_experience_years = 5  # Multiple jobs usually indicates some experience
-            elif len(sections['experience']) >= 1:
-                total_experience_years = 2  # At least one job
-            
-            # Check for keywords indicating senior positions
-            senior_keywords = ['senior', 'lead', 'manager', 'director', 'head']
-            for exp in sections['experience']:
-                desc = exp.get('description', '').lower()
-                if any(keyword in desc for keyword in senior_keywords):
-                    total_experience_years = max(total_experience_years, 5)
-        
         sections['total_experience_years'] = total_experience_years
         
-        # Make sure we don't have problematic structures in the data
-        return ensure_json_serializable(sections)
+        return sections
     
     except Exception as e:
         logger.error(f"Error in parse_pdf_to_cv_data: {str(e)}")
         logger.error(traceback.format_exc())
-        
-        # Return a complete fallback structure that satisfies the model requirements
         return {
             'summary': f'Error parsing PDF: {str(e)}',
             'experience': [{'duration': 'Not available', 'description': 'Error occurred during parsing'}],
@@ -575,3 +533,15 @@ def parse_pdf_to_cv_data(pdf_path):
             'accomplishments': [],
             'total_experience_years': 0
         }
+
+def parseResume(event, context):
+    """
+    Lambda handler for parsing resumes
+    Expected input:
+      - file_path: Path to the PDF file
+    """
+    return parse_resume(event, context)  # Delegate to original implementation for backward compatibility
+
+# Export the Lambda handlers
+parseResume = parseResume
+evaluateResume = evaluate_resume

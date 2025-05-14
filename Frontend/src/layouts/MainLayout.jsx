@@ -10,16 +10,19 @@ import {
   User,
   ChevronDown,
   LogOut,
-  Sliders,
   PieChart,
+  Briefcase,
+  Menu,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
 
 const MainLayout = ({ children }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const location = useLocation();
-  const { user, logout } = useAuth(); // Add this line
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -31,8 +34,18 @@ const MainLayout = ({ children }) => {
     }
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: BarChart, path: "/dashboard" },
+    {
+      id: "job",
+      label: "Create Job",
+      icon: Briefcase,
+      path: "/create-job",
+    },
     {
       id: "email",
       label: "Email Integration",
@@ -44,12 +57,6 @@ const MainLayout = ({ children }) => {
       label: "Resume Management",
       icon: FileText,
       path: "/manage-resumes",
-    },
-    {
-      id: "criteria",
-      label: "Setup Criteria",
-      icon: Sliders,
-      path: "/setup-criteria",
     },
     {
       id: "calendar",
@@ -68,7 +75,17 @@ const MainLayout = ({ children }) => {
         <div className="max-w-full px-4">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <span className="text-xl font-bold text-gray-800">ResuMatch</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="mr-2"
+                onClick={toggleSidebar}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              <Link to="/dashboard" className="flex items-center">
+                <span className="text-xl font-bold text-gray-800">ResuMatch</span>
+              </Link>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="sm" className="relative">
@@ -117,7 +134,11 @@ const MainLayout = ({ children }) => {
       {/* Main Layout */}
       <div className="flex h-screen pt-16">
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-sm fixed left-0 h-full z-40">
+        <aside 
+          className={`bg-white shadow-sm fixed left-0 h-full z-40 transition-all duration-300 ${
+            isSidebarCollapsed ? "w-16" : "w-64"
+          }`}
+        >
           <nav className="mt-6">
             {menuItems.map((item) => (
               <Link
@@ -129,15 +150,25 @@ const MainLayout = ({ children }) => {
                     : ""
                 }`}
               >
-                <item.icon className="h-5 w-5 mr-3" />
-                {item.label}
+                <item.icon className="h-5 w-5 min-w-[20px]" />
+                {!isSidebarCollapsed && (
+                  <span className="ml-3 transition-opacity duration-300">
+                    {item.label}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 ml-64 p-6 overflow-auto">{children}</main>
+        <main 
+          className={`flex-1 p-6 overflow-auto transition-all duration-300 ${
+            isSidebarCollapsed ? "ml-16" : "ml-64"
+          }`}
+        >
+          {children}
+        </main>
       </div>
     </div>
   );

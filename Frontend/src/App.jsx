@@ -8,7 +8,7 @@ import {
 import MainLayout from "./layouts/MainLayout";
 import Dashboard from "./pages/dashboard/Dashboard";
 import EmailIntegration from "./pages/email/EmailIntegration";
-import CreateJob from "./pages/jobs/CreateJobs";
+import CreateJobWithCriteria from "./pages/jobs/CreateJobWithCriteria";
 import ManageResumes from "./pages/resumes/ManageResumes";
 import SetupCriteria from "./pages/resumes/SetupCriteria";
 import InterviewScheduler from "./pages/scheduling/Scheduling";
@@ -45,6 +45,7 @@ const App = () => {
             element={!isAuthenticated ? <Register /> : <Navigate to="/dashboard" />}
           />
 
+<<<<<<< HEAD
           {/* Protected Routes */}
           <Route
             path="/*"
@@ -77,6 +78,39 @@ const App = () => {
         </Routes>
       </Router>
     </>
+=======
+        {/* Protected Routes */}
+        <Route
+          path="/*"
+          element={
+            isAuthenticated ? (
+              <MainLayout>
+                <Routes>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route
+                    path="/email-integration"
+                    element={<EmailIntegration />}
+                  />
+                  <Route path="/create-job" element={<CreateJobWithCriteria />} />
+                  <Route path="/manage-resumes" element={<ManageResumes />} />
+                  <Route path="/setup-criteria" element={<SetupCriteria />} />
+                  <Route
+                    path="/interview-scheduler"
+                    element={<InterviewScheduler />}
+                  />
+                  <Route path="/reports" element={<Reports />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="*" element={<Navigate to="/dashboard" />} />
+                </Routes>
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+      </Routes>
+    </Router>
+>>>>>>> 7528a2845d1abb6ce631ef06701e9d67a0a07cb2
   );
 };
 
