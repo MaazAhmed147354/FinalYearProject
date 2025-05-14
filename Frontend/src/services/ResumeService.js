@@ -57,10 +57,60 @@ class ResumeService {
   }
 
   async downloadResumeFile(id) {
-    return axios.get(BASE_API_URL + `/resumes/${id}/download`, {
-      withCredentials: true,
-      responseType: "blob",
-    });
+    try {
+      const response = await axios.get(BASE_API_URL + `/resumes/${id}/download`, {
+        withCredentials: true,
+        responseType: "blob",
+        timeout: 30000, // 30 second timeout
+        maxContentLength: 50 * 1024 * 1024, // 50MB max file size
+        onDownloadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log(`Download Progress: ${percentCompleted}%`);
+        }
+      });
+
+      // Get filename from Content-Disposition header
+      const contentDisposition = response.headers['content-disposition'];
+      const fileName = contentDisposition
+        ? contentDisposition.split('filename=')[1].replace(/['"]/g, '')
+        : `resume_${id}.pdf`;
+
+      // Create blob URL
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const url = window.URL.createObjectURL(blob);
+
+      // Create temporary link and trigger download
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      return response;
+    } catch (error) {
+      console.error('Download error:', error);
+      
+      if (error.response) {
+        switch (error.response.status) {
+          case 404:
+            throw new Error('Resume file not found. The file might have been moved or deleted.');
+          case 502:
+            throw new Error('Server error. Please try again later.');
+          default:
+            throw new Error(`Download failed: ${error.response.data.message || 'Unknown error'}`);
+        }
+      }
+      
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Download timed out. Please try again.');
+      }
+      
+      throw new Error('Failed to download resume. Please try again later.');
+    }
   }
 }
 

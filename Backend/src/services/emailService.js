@@ -427,3 +427,31 @@ exports.updateEmailStatus = async (emailId, status) => {
     throw error;
   }
 };
+
+/**
+ * Get email details by ID
+ * @param {number} id - Email ID
+ * @returns {Promise<Object>} Email details
+ */
+exports.getEmailDetails = async (id) => {
+  try {
+    // Get email with job information
+    const email = await Email.findByPk(id, {
+      include: [
+        {
+          model: Job,
+          as: 'job',
+          attributes: ['id', 'title', 'department', 'status'],
+        },
+      ],
+    });
+
+    if (!email) {
+      throw new Error('Email not found');
+    }
+
+    return email;
+  } catch (error) {
+    throw error;
+  }
+};

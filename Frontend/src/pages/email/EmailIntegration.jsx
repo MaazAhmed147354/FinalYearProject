@@ -5,8 +5,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
-import { Calendar, Filter, Download, Eye, Trash2, Mail, Search } from "lucide-react";
-import React, { useState } from "react";
+import { Calendar, Filter, Download, Eye, Trash2, Mail, Search, RefreshCw } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import EmailService from "../../services/EmailService";
+import { toast } from "react-hot-toast";
 
 const EmailIntegration = () => {
   const [filterParams, setFilterParams] = useState({
@@ -15,74 +17,141 @@ const EmailIntegration = () => {
     subject: "",
   });
 
-  const [emails, setEmails] = useState([
-    {
-      id: 1,
-      sender: "john.doe@example.com",
-      subject: "Application for Senior Software Engineer",
-      date: "2024-01-25",
-      hasResume: true,
-      status: "pending",
-    },
-    {
-      id: 2,
-      sender: "jane.smith@example.com",
-      subject: "Product Manager Position Application",
-      date: "2024-01-26",
-      hasResume: true,
-      status: "imported",
-    },
-    {
-      id: 3,
-      sender: "michael.brown@example.com",
-      subject: "Job Application - UX Designer",
-      date: "2024-01-27",
-      hasResume: true,
-      status: "pending",
-    },
-    {
-      id: 4,
-      sender: "sarah.wilson@example.com",
-      subject: "Frontend Developer Role - Resume Attached",
-      date: "2024-01-28",
-      hasResume: true,
-      status: "pending",
-    },
-  ]);
+  const [emails, setEmails] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState("");
+  const [jobs, setJobs] = useState([]);
+
+  useEffect(() => {
+    fetchEmails();
+    fetchJobs();
+  }, []);
+
+  const fetchJobs = async () => {
+    try {
+      // Replace with your actual job fetching API call
+      const response = await fetch('http://localhost:3000/dev/jobs');
+      const data = await response.json();
+      setJobs(data.data || []);
+    } catch (error) {
+      console.error('Failed to fetch jobs:', error);
+    }
+  };
+
+  const fetchEmails = async () => {
+    try {
+      setLoading(true);
+      const response = await EmailService.listEmails();
+      setEmails(response.data.data || []);
+    } catch (error) {
+      toast.error("Failed to fetch emails: " + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
     setFilterParams(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleDateFilter = () => {
-    // Implement date filtering logic
-    console.log("Filtering with params:", filterParams);
+  const handleDateFilter = async () => {
+    try {
+      setLoading(true);
+      const response = await EmailService.listEmails({
+        start_date: filterParams.startDate,
+        end_date: filterParams.endDate,
+        search: filterParams.subject
+      });
+      setEmails(response.data.data || []);
+    } catch (error) {
+      toast.error("Failed to filter emails: " + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleImportAll = () => {
-    // Implement bulk import logic
-    console.log("Importing all resumes");
+  const handleSyncEmails = async () => {
+    try {
+      setSyncing(true);
+      const response = await EmailService.syncEmails();
+      toast.success("Emails synchronized successfully!");
+      fetchEmails(); // Refresh the email list
+    } catch (error) {
+      toast.error("Failed to sync emails: " + error.message);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const handleDownloadResume = async (emailId) => {
+    try {
+      // Just download the resume without requiring job selection
+      await EmailService.downloadResume(emailId);
+    } catch (error) {
+      toast.error("Failed to download resume: " + error.message);
+    }
+  };
+
+  const handleExtractResume = async (emailId) => {
+    if (!selectedJobId) {
+      toast.error("Please select a job first");
+      return;
+    }
+
+    try {
+      const response = await EmailService.extractResumeFromEmail(emailId, selectedJobId);
+      toast.success("Resume extracted successfully!");
+      fetchEmails(); // Refresh to update status
+    } catch (error) {
+      toast.error("Failed to extract resume: " + error.message);
+    }
+  };
+
+  const handleUpdateStatus = async (emailId, status) => {
+    try {
+      await EmailService.updateEmailStatus(emailId, status);
+      toast.success("Email status updated successfully!");
+      fetchEmails(); // Refresh to show updated status
+    } catch (error) {
+      toast.error("Failed to update status: " + error.message);
+    }
   };
 
   return (
-    <div className="p-6">
+    <div className="container mx-auto p-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex justify-between items-center">
-            <span>Email Integration</span>
-            <Button
-              onClick={handleImportAll}
-              className="hover:text-gray-500"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Import All Resumes
-            </Button>
-          </CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>Email Integration</CardTitle>
+            <div className="flex gap-4">
+              <select
+                className="border rounded-md p-2"
+                value={selectedJobId}
+                onChange={(e) => setSelectedJobId(e.target.value)}
+              >
+                <option value="">Select Job for Extraction</option>
+                {jobs.map((job) => (
+                  <option key={job.id} value={job.id}>
+                    {job.title}
+                  </option>
+                ))}
+              </select>
+              <Button 
+                onClick={handleSyncEmails} 
+                disabled={syncing}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+                {syncing ? 'Syncing...' : 'Sync Emails'}
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {/* Filter Section */}
-          <div className="mb-6 flex flex-wrap gap-4 items-end">
+          <div className="flex gap-4 mb-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">Start Date</label>
               <div className="relative">
@@ -123,9 +192,9 @@ const EmailIntegration = () => {
                 />
               </div>
             </div>
-            <Button onClick={handleDateFilter} variant="outline">
+            <Button onClick={handleDateFilter} variant="outline" disabled={loading}>
               <Filter className="w-4 h-4 mr-2" />
-              Filter Emails
+              {loading ? 'Filtering...' : 'Filter Emails'}
             </Button>
           </div>
 
@@ -155,54 +224,82 @@ const EmailIntegration = () => {
                 {emails.map((email) => (
                   <tr key={email.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {email.sender}
-                      </div>
+                      <div className="text-sm text-gray-900">{email.sender}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
-                        {email.subject}
-                      </div>
+                      <div className="text-sm text-gray-900">{email.subject}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{email.date}</div>
+                      <div className="text-sm text-gray-900">
+                        {new Date(email.received_date).toLocaleDateString()}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                           email.status === "imported"
                             ? "bg-green-100 text-green-800"
+                            : email.status === "rejected"
+                            ? "bg-red-100 text-red-800"
+                            : email.status === "spam"
+                            ? "bg-gray-100 text-gray-800"
                             : "bg-yellow-100 text-yellow-800"
                         }`}
                       >
                         {email.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        <Download className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="flex space-x-2">
+                        {email.has_resume && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDownloadResume(email.id)}
+                              title="Download Original Resume"
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                            {email.status === 'pending' && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleExtractResume(email.id)}
+                                title="Extract and Download Processed Resume"
+                                disabled={!selectedJobId}
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleUpdateStatus(email.id, 'rejected')}
+                          title="Mark as Rejected"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
+                {emails.length === 0 && !loading && (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                      No emails found
+                    </td>
+                  </tr>
+                )}
+                {loading && (
+                  <tr>
+                    <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
+                      Loading...
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
