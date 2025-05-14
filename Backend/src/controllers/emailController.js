@@ -143,3 +143,29 @@ exports.updateEmailStatus = async (event) => {
     return responseHelper.errorResponse(500, "Failed to update email status", error.message);
   }
 };
+
+/**
+ * Get email details
+ */
+exports.getEmailDetails = async (event) => {
+  try {
+    const { id } = event.pathParameters;
+    
+    if (!id) {
+      return responseHelper.validationErrorResponse({
+        id: "Email ID is required"
+      });
+    }
+
+    const email = await emailService.getEmailDetails(id);
+    return responseHelper.successResponse(200, "Email details retrieved successfully", email);
+  } catch (error) {
+    console.error("Error in getEmailDetails:", error);
+    
+    if (error.message === 'Email not found') {
+      return responseHelper.notFoundResponse('Email');
+    }
+    
+    return responseHelper.errorResponse(500, "Failed to retrieve email details", error.message);
+  }
+};

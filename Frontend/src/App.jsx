@@ -76,4 +76,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default App

@@ -314,7 +314,8 @@ functions:
 
   downloadResumeFile:
     handler: src/handlers/resumeHandler.downloadResumeFile
-    timeout: 60
+    timeout: 30
+    memorySize: 512
     events:
       - http:
           path: resumes/{id}/download
@@ -323,8 +324,15 @@ functions:
             origin: "http://localhost:3000"
             headers:
               - Content-Type
-              - X-Custom-Header
+              - Content-Disposition
+              - Content-Length
             allowCredentials: true
+          integration: lambda
+          response:
+            headers:
+              Content-Type: "'${integration.response.body.headers['Content-Type']}'"
+              Content-Disposition: "'${integration.response.body.headers['Content-Disposition']}'"
+              Content-Length: "'${integration.response.body.headers['Content-Length']}'"
 
   # Report Functions
   generateCandidateReport:
@@ -538,6 +546,42 @@ functions:
               - Content-Type
               - X-Custom-Header
             allowCredentials: true
+
+  getEmailById:
+    handler: src/handlers/emailHandler.getEmailDetails
+    timeout: 30
+    events:
+      - http:
+          path: emails/{id}
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+
+  downloadEmailAttachment:
+    handler: src/handlers/emailHandler.downloadEmailAttachment
+    timeout: 30
+    memorySize: 512
+    events:
+      - http:
+          path: emails/{id}/attachments/download
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - Content-Disposition
+              - Content-Length
+            allowCredentials: true
+          integration: lambda
+          response:
+            headers:
+              Content-Type: "'${integration.response.body.headers['Content-Type']}'"
+              Content-Disposition: "'${integration.response.body.headers['Content-Disposition']}'"
+              Content-Length: "'${integration.response.body.headers['Content-Length']}'"
 
   extractResumeFromEmail:
     handler: src/handlers/emailHandler.extractResumeFromEmail

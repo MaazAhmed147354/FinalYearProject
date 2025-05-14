@@ -16,6 +16,7 @@ module.exports.listEmails = emailRoutes.listEmails;
 module.exports.sendEmail = emailRoutes.sendEmail;
 module.exports.associateEmailWithJob = emailRoutes.associateEmailWithJob;
 module.exports.updateEmailStatus = emailRoutes.updateEmailStatus;
+module.exports.getEmailDetails = emailRoutes.getEmailDetails;
 
 /**
  * Extract resume from email attachment and process it
@@ -196,5 +197,110 @@ module.exports.extractResumeFromEmail = async (event) => {
     }
    
     return responseHelper.errorResponse(500, "Failed to extract resume", error.message);
+  }
+};
+
+/**
+ * Get email details
+ * @param {Object} event - API Gateway Lambda event
+ * @returns {Promise<Object>} API response
+ */
+exports.getEmailDetails = async (event) => {
+  try {
+    // Extract email ID from path parameters
+    const { id } = event.pathParameters;
+    
+    if (!id) {
+      return responseHelper.errorResponse(400, 'Email ID is required');
+    }
+    
+    // Get email details
+    const email = await emailService.getEmailDetails(id);
+    
+    // Return success
+    return responseHelper.successResponse(200, 'Email details retrieved successfully', email);
+  } catch (error) {
+    console.error('Error in getEmailDetails:', error);
+    
+    if (error.message === 'Email not found') {
+      return responseHelper.errorResponse(404, 'Email not found');
+    }
+    
+    return responseHelper.errorResponse(500, 'Internal Server Error', error.message);
+  }
+};
+
+/**
+ * Download email attachment
+ * @param {Object} event - API Gateway Lambda event
+ * @returns {Promise<Object>} API response with file
+ */
+exports.downloadEmailAttachment = async (event) => {
+  try {
+    // Extract email ID from path parameters
+    const { id } = event.pathParameters;
+    
+    if (!id) {
+      return responseHelper.errorResponse(400, 'Email ID is required');
+    }
+    
+    // Get email details
+    const email = await emailService.getEmailDetails(id);
+    
+    // Validate attachment paths
+    if (!email.attachment_paths || email.attachment_paths.length === 0) {
+      return responseHelper.errorResponse(404, 'No attachments found for this email');
+    }
+    
+    // Get the first attachment (for now we'll handle one attachment)
+    const attachmentPath = email.attachment_paths[0];
+    
+    // Check if file exists
+    try {
+      await fs.promises.access(attachmentPath, fs.constants.F_OK);
+    } catch (error) {
+      console.error(`File not accessible: ${attachmentPath}`, error);
+      return responseHelper.errorResponse(404, 'Attachment file not accessible');
+    }
+    
+    // Read file
+    const fileContent = await fs.promises.readFile(attachmentPath);
+    const fileName = path.basename(attachmentPath);
+    
+    // Determine content type
+    const ext = path.extname(fileName).toLowerCase();
+    let contentType = 'application/octet-stream'; // default
+    
+    switch (ext) {
+      case '.pdf':
+        contentType = 'application/pdf';
+        break;
+      case '.doc':
+        contentType = 'application/msword';
+        break;
+      case '.docx':
+        contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        break;
+    }
+    
+    // Return file
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Content-Length': fileContent.length
+      },
+      body: fileContent.toString('base64'),
+      isBase64Encoded: true
+    };
+  } catch (error) {
+    console.error('Error in downloadEmailAttachment:', error);
+    
+    if (error.message === 'Email not found') {
+      return responseHelper.errorResponse(404, 'Email not found');
+    }
+    
+    return responseHelper.errorResponse(500, 'Internal Server Error', error.message);
   }
 };

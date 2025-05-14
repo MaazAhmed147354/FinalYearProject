@@ -593,25 +593,67 @@ exports.downloadResumeFile = async (id) => {
     if (!resume.file_path) {
       throw new Error("Resume file not found");
     }
+
+    // Check if file exists
+    try {
+      await fs.promises.access(resume.file_path, fs.constants.F_OK);
+    } catch (error) {
+      console.error(`File not accessible: ${resume.file_path}`, error);
+      throw new Error("Resume file not accessible");
+    }
    
-    // Read file (implementation depends on your storage solution)
-    // For local files:
-    const fs = require('fs');
-    const fileContent = fs.readFileSync(resume.file_path);
-    const fileName = resume.file_path.split('/').pop();
+    // Read file asynchronously
+    const fileContent = await fs.promises.readFile(resume.file_path);
+    const fileName = path.basename(resume.file_path);
+    
+    // Determine content type based on file extension
+    const ext = path.extname(fileName).toLowerCase();
+    let contentType = 'application/octet-stream'; // default
+    
+    switch (ext) {
+      case '.pdf':
+        contentType = 'application/pdf';
+        break;
+      case '.doc':
+        contentType = 'application/msword';
+        break;
+      case '.docx':
+        contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+        break;
+    }
    
-    // Return file
+    // Return file with proper headers
     return {
       statusCode: 200,
       headers: {
-        'Content-Type': 'application/pdf', // Adjust based on file type
-        'Content-Disposition': `attachment; filename="${fileName}"`
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="${fileName}"`,
+        'Content-Length': fileContent.length
       },
       body: fileContent.toString('base64'),
       isBase64Encoded: true
     };
   } catch (error) {
-    throw error;
+    console.error('Error in downloadResumeFile:', error);
+    
+    if (error.message === 'Resume not found') {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ message: 'Resume not found' })
+      };
+    }
+    
+    if (error.message === 'Resume file not found' || error.message === 'Resume file not accessible') {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ message: error.message })
+      };
+    }
+    
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal server error while downloading resume' })
+    };
   }
 };
 

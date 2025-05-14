@@ -48,3 +48,11 @@ exports.updateEmailStatus = async (event) => {
 
   return await emailController.updateEmailStatus(event);
 };
+
+// Get email details
+exports.getEmailDetails = async (event) => {
+  const authResult = await auth.authorizeToken(event);
+  if (authResult.statusCode !== 202) return authResult;
+
+  return await emailController.getEmailDetails(event);
+};
