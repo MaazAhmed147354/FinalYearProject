@@ -288,13 +288,6 @@ exports.extractResumeFromEmail = async (emailId, jobId) => {
       throw new Error("No resume attachments found");
     }
 
-    // Extract name and email from the sender field
-    const nameMatch = email.sender.match(/^"?([^"<]+)"?\s*<?([^>]+)>?$/);
-    console.log(nameMatch);
-    
-    const candidateName = nameMatch ? nameMatch[1].trim() : "Unknown";
-    const candidateEmail = nameMatch ? nameMatch[2].trim() : email.sender;
-
     // Process the first resume attachment
     const resumePath = resumeAttachments[0];
     const file = {
@@ -303,7 +296,28 @@ exports.extractResumeFromEmail = async (emailId, jobId) => {
       data: await fs.promises.readFile(resumePath),
     };
 
-    // Upload resume
+    // First parse the resume to get the actual candidate name
+    const parsedData = await resumeService.parseResume(resumePath);
+    
+    // Extract name from the parsed data
+    let candidateName = "Unknown";
+    let candidateEmail = email.sender;
+    
+    // Try to extract name from summary (which usually contains the candidate's name)
+    if (parsedData && parsedData.summary) {
+      const firstLine = parsedData.summary.split('\n')[0].trim();
+      if (firstLine && firstLine.length > 0) {
+        candidateName = firstLine;
+      }
+    }
+    
+    // Extract email from sender or parsed data
+    const nameMatch = email.sender.match(/^"?([^"<]+)"?\s*<?([^>]+)>?$/);
+    if (nameMatch && nameMatch[2]) {
+      candidateEmail = nameMatch[2].trim();
+    }
+
+    // Upload resume with the correct name
     const resumeData = {
       candidate_name: candidateName,
       candidate_email: candidateEmail,
@@ -311,6 +325,7 @@ exports.extractResumeFromEmail = async (emailId, jobId) => {
       source_email_id: emailId,
     };
 
+    console.log("Uploading resume with data:", resumeData);
     const resume = await resumeService.uploadResume(resumeData, file);
 
     // Update email status

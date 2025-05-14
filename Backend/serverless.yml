@@ -4,12 +4,14 @@ provider:
   runtime: nodejs18.x
   # stage: ${opt:stage, 'dev'}
   # region: ${opt:region, 'us-east-1'}
-  # environment:
-  #   DB_HOST: ${env:DB_HOST, 'localhost'}
-  #   DB_NAME: ${env:DB_NAME, 'smart_resume_parser'}
-  #   DB_USER: ${env:DB_USER, 'root'}
-  #   DB_PASSWORD: ${env:DB_PASSWORD, 'root'}
-  #   JWT_SECRET: ${env:JWT_SECRET, 'your-secret-key'}
+  environment:
+    PYTHON_API_URL: ${env:PYTHON_API_URL, 'http://localhost:3001/dev'}
+    DB_HOST: ${env:DB_HOST, 'localhost'}
+    DB_NAME: ${env:DB_NAME, 'smart_resume_parser'}
+    DB_USER: ${env:DB_USER, 'root'}
+    DB_PASSWORD: ${env:DB_PASSWORD, 'root'}
+    JWT_SECRET: ${env:JWT_SECRET, 'your-secret-key'}
+
 
 functions:
   hello:
@@ -309,7 +311,21 @@ functions:
               - Content-Type
               - X-Custom-Header
             allowCredentials: true
-
+    
+  generateCandidateReportPDF:
+    handler: src/handlers/reportHandlerDirect.generateCandidateReportPDF
+    timeout: 60
+    events:
+      - http:
+          path: reports/candidate-pdf
+          method: post
+          cors:
+            origin: "*"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
+            
   compareCandidates:
     handler: src/handlers/reportHandler.compareCandidates
     timeout: 60
@@ -648,6 +664,14 @@ functions:
               - Content-Type
               - X-Custom-Header
             allowCredentials: true
+
+  testResumeParsing:
+    handler: src/handlers/testHandler.testResumeParsing
+    events:
+      - http:
+          path: test/parse-resume
+          method: get
+          cors: true
 
 plugins:
   - serverless-offline
