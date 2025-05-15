@@ -8,9 +8,12 @@ import {
 import { Calendar, Filter, Download, Eye, Trash2, Mail, Search, RefreshCw } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import EmailService from "../../services/EmailService";
+import JobService from "../../services/JobService";
 import { toast } from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const EmailIntegration = () => {
+  const navigate = useNavigate();
   const [filterParams, setFilterParams] = useState({
     startDate: "",
     endDate: "",
@@ -22,6 +25,7 @@ const EmailIntegration = () => {
   const [syncing, setSyncing] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState("");
   const [jobs, setJobs] = useState([]);
+  const [openJobs, setOpenJobs] = useState([]);
 
   useEffect(() => {
     fetchEmails();
@@ -30,12 +34,14 @@ const EmailIntegration = () => {
 
   const fetchJobs = async () => {
     try {
-      // Replace with your actual job fetching API call
-      const response = await fetch('http://localhost:3000/dev/jobs');
-      const data = await response.json();
-      setJobs(data.data || []);
+      const response = await JobService.listJobs({ status: "open" });
+      if (response.data && response.data.data) {
+        setJobs(response.data.data);
+        setOpenJobs(response.data.data.filter(job => job.status === 'open'));
+      }
     } catch (error) {
       console.error('Failed to fetch jobs:', error);
+      toast.error("Failed to fetch jobs: " + error.message);
     }
   };
 
@@ -109,6 +115,14 @@ const EmailIntegration = () => {
     }
   };
 
+  const handleJobSelection = (jobId) => {
+    setSelectedJobId(jobId);
+    
+    // We're removing the navigation to Resume Management page
+    // as this will be handled by the ManageResumes component directly
+    console.log("Selected job ID:", jobId);
+  };
+
   const handleUpdateStatus = async (emailId, status) => {
     try {
       await EmailService.updateEmailStatus(emailId, status);
@@ -129,10 +143,10 @@ const EmailIntegration = () => {
               <select
                 className="border rounded-md p-2"
                 value={selectedJobId}
-                onChange={(e) => setSelectedJobId(e.target.value)}
+                onChange={(e) => handleJobSelection(e.target.value)}
               >
                 <option value="">Select Job for Extraction</option>
-                {jobs.map((job) => (
+                {openJobs.map((job) => (
                   <option key={job.id} value={job.id}>
                     {job.title}
                   </option>

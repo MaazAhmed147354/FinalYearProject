@@ -112,6 +112,12 @@ class ResumeService {
       throw new Error('Failed to download resume. Please try again later.');
     }
   }
+
+  async getResumesByJobId(jobId) {
+    return axios.get(BASE_API_URL + `/jobs/${jobId}/resumes`, {
+      withCredentials: true,
+    });
+  }
 }
 
 export default new ResumeService();

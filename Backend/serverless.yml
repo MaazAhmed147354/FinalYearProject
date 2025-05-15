@@ -275,7 +275,7 @@ functions:
     timeout: 30
     events:
       - http:
-          path: resumes/status
+          path: resumes/{id}/status
           method: put
           cors:
             origin: "http://localhost:3000"
@@ -745,6 +745,20 @@ functions:
           path: test/parse-resume
           method: get
           cors: true
+
+  getResumesByJobId:
+    handler: src/handlers/resumeHandler.getResumesByJobId
+    timeout: 30
+    events:
+      - http:
+          path: jobs/{jobId}/resumes
+          method: get
+          cors:
+            origin: "http://localhost:3000"
+            headers:
+              - Content-Type
+              - X-Custom-Header
+            allowCredentials: true
 
 plugins:
   - serverless-offline
