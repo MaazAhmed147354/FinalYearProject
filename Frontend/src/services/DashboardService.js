@@ -5,9 +5,30 @@ const BASE_API_URL = "http://localhost:3000/dev";
 class DashboardService {
   // Get dashboard statistics (active jobs, total applications, scheduled interviews)
   async getDashboardStats() {
-    return axios.get(BASE_API_URL + "/dashboard/stats", {
-      withCredentials: true,
-    });
+    try {
+      const response = await axios.get(BASE_API_URL + "/dashboard/stats", {
+        withCredentials: true,
+      });
+      
+      // Check if we got a valid response with data
+      if (response.data && response.data.data) {
+        return {
+          data: {
+            success: true,
+            activeJobs: response.data.data.activeJobs,
+            totalApplications: response.data.data.totalApplications,
+            scheduledInterviews: response.data.data.scheduledInterviews,
+            jobs: response.data.data.jobs
+          }
+        };
+      }
+      
+      // If we didn't get valid data, throw an error to trigger fallback
+      throw new Error("Invalid response structure");
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+      throw error;
+    }
   }
 
   // Fallback method to calculate stats from jobs list if the endpoint isn't available
@@ -27,6 +48,7 @@ class DashboardService {
       
       return {
         data: {
+          success: true,
           activeJobs,
           totalApplications,
           scheduledInterviews,
