@@ -27,7 +27,7 @@ const User = sequelize.define('User', {
     allowNull: false,
   },
   department: {
-    type: DataTypes.STRING(100),
+    type: DataTypes.ENUM('Information Technology', 'Business', 'DevOps', 'Customer Support', 'Engineering', 'Marketing', 'Quality Assurance', 'Security', 'Sales', 'Finance'),
     allowNull: true,
   },
   created_at: {

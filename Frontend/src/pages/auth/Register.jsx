@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Select from "react-select";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import {
@@ -21,6 +22,19 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  const departmentOptions = [
+    { value: "Information Technology", label: "Information Technology" },
+    { value: "Business", label: "Business" },
+    { value: "DevOps", label: "DevOps" },
+    { value: "Customer Support", label: "Customer Support" },
+    { value: "Engineering", label: "Engineering" },
+    { value: "Marketing", label: "Marketing" },
+    { value: "Quality Assurance", label: "Quality Assurance" },
+    { value: "Security", label: "Security" },
+    { value: "Sales", label: "Sales" },
+    { value: "Finance", label: "Finance" },
+  ];
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -153,15 +167,21 @@ const Register = () => {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Department</label>
                 <div className="relative">
-                  <Building className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    name="department"
-                    value={formData.department}
-                    onChange={handleChange}
-                    className="pl-10 w-full p-2 border rounded-md"
-                    placeholder="Enter your department"
-                    required={formData.role === "department"}
+                  <Select
+                    options={departmentOptions}
+                    value={departmentOptions.find(
+                      (opt) => opt.value === formData.department
+                    )}
+                    onChange={(option) =>
+                      handleChange({
+                        target: { name: "department", value: option.value },
+                      })
+                    }
+                    placeholder="Select Department"
+                    menuPlacement="auto" // opens below if possible
+                    styles={{
+                      menu: (provided) => ({ ...provided, maxHeight: 200 }),
+                    }}
                   />
                 </div>
               </div>
