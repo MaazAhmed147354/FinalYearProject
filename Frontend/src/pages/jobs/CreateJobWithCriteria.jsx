@@ -537,7 +537,7 @@ const CreateJobWithCriteria = () => {
           <Button 
             type="button"
             onClick={() => handleAddKeyword(keywordInput)}
-            className="bg-gray-200 hover:bg-gray-300"
+            className="bg-gray-200 hover:bg-gray-300 p-2"
           >
             Add
           </Button>

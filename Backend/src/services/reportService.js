@@ -1,4 +1,6 @@
-// Modify this function in reportService.js to fix the totalScore.toFixed error
+// Modify this function in reportService.js to return structured JSON instead of HTML
+
+const { Resume, Candidate, Job, User, Report, ResumeScore, CriteriaSet } = require("../models");
 
 exports.generateCandidateReport = async (resumeId, userId) => {
   try {
@@ -24,14 +26,14 @@ exports.generateCandidateReport = async (resumeId, userId) => {
       throw new Error('Resume not found');
     }
     
-    // Generate report content using Python model
+    // Generate report content using data model
     const reportContent = await generateReportContent(resume);
     
-    // Create report record
+    // Create report record - store the JSON as a string
     const report = await Report.create({
       resume_id: resumeId,
       type: resume.status === 'shortlisted' ? 'shortlisted' : 'rejected',
-      content: reportContent,
+      content: JSON.stringify(reportContent),
       generated_by: userId,
       sent: false
     });
@@ -61,13 +63,94 @@ exports.generateCandidateReport = async (resumeId, userId) => {
       ]
     });
     
-    return completeReport;
+    // Parse the JSON string back to an object before returning
+    const reportWithParsedContent = {
+      ...completeReport.toJSON(),
+      content: reportContent
+    };
+    
+    return reportWithParsedContent;
   } catch (error) {
     throw error;
   }
 };
 
-// Modify generateReportContent function to fix the totalScore.toFixed error
+/**
+ * Compare multiple candidates
+ */
+exports.compareResumes = async (resumeIds) => {
+  // Parse resume IDs
+  const ids = Array.isArray(resumeIds) ? resumeIds : resumeIds.split(',').map(id => parseInt(id, 10));
+ 
+  if (ids.length < 2) {
+    throw new Error('At least two candidates are required for comparison');
+  }
+ 
+  // Get resumes with scores
+  const resumes = await Resume.findAll({
+    where: {
+      id: ids
+    },
+    include: [
+      {
+        model: Candidate,
+        as: 'candidate'
+      },
+      {
+        model: Job,
+        as: 'job'
+      },
+      {
+        model: ResumeScore,
+        as: 'scores'
+      }
+    ]
+  });
+ 
+  if (resumes.length !== ids.length) {
+    throw new Error('Some resumes not found');
+  }
+ 
+  // Check if all resumes are for the same job
+  const jobIds = new Set(resumes.map(r => r.job_id));
+  const sameJob = jobIds.size === 1 && !jobIds.has(null);
+ 
+  // Build comparison data
+  const comparison = {
+    job: sameJob ? resumes[0].job : null,
+    candidates: resumes.map(resume => {
+      const score = resume.scores && resume.scores.length > 0 ? resume.scores[0] : null;
+     
+      return {
+        id: resume.id,
+        candidate_id: resume.candidate_id,
+        candidate_name: resume.candidate.name,
+        candidate_email: resume.candidate.email,
+        experience_years: resume.experience_years || 0,
+        skills: resume.skills || [],
+        education: resume.education || [],
+        total_score: score ? score.total_score : null,
+        skills_score: score ? score.skills_score : null,
+        experience_score: score ? score.experience_score : null,
+        keyword_score: score ? score.keyword_score : null,
+        matching_skills: score ? score.matching_skills : [],
+        missing_skills: score ? score.missing_skills : []
+      };
+    })
+  };
+ 
+  // Sort candidates by total score if available
+  comparison.candidates.sort((a, b) => {
+    if (a.total_score === null && b.total_score === null) return 0;
+    if (a.total_score === null) return 1;
+    if (b.total_score === null) return -1;
+    return b.total_score - a.total_score;
+  });
+ 
+  return comparison;
+};
+
+// Generate structured JSON report data instead of HTML
 const generateReportContent = async (resume) => {
   try {
     // Try to get existing score data
@@ -76,12 +159,12 @@ const generateReportContent = async (resume) => {
       scoreData = resume.scores[0];
     }
     
-    // If no score data exists, use Python model to generate a basic report
+    // If no score data exists, use basic report format
     if (!scoreData) {
       return await generateBasicReport(resume);
     }
     
-    // Build comprehensive report based on score data
+    // Build structured report based on score data
     const candidateName = resume.candidate.name;
     const jobTitle = resume.job ? resume.job.title : 'the position';
     
@@ -113,47 +196,36 @@ const generateReportContent = async (resume) => {
       keyword: parseFloat(scoreData.keyword_score || 0)
     };
     
-    let reportContent = `
-      <h2>Candidate Evaluation Report</h2>
-      <h3>Overview</h3>
-      <p><strong>Candidate:</strong> ${candidateName}</p>
-      <p><strong>Position:</strong> ${jobTitle}</p>
-      <p><strong>Overall Match Score:</strong> ${scores.total.toFixed(2)}%</p>
-     
-      <h3>Score Breakdown</h3>
-      <ul>
-        <li><strong>Skills Match:</strong> ${scores.skills.toFixed(2)}%</li>
-        <li><strong>Experience Match:</strong> ${scores.experience.toFixed(2)}%</li>
-        <li><strong>Keyword Match:</strong> ${scores.keyword.toFixed(2)}%</li>
-      </ul>
-     
-      <h3>Matching Skills</h3>
-      <ul>
-        ${matchingSkills.map(skill => `<li>${skill}</li>`).join('\n        ')}
-      </ul>
-     
-      <h3>Missing Skills</h3>
-      <ul>
-        ${missingSkills.map(skill => `<li>${skill}</li>`).join('\n        ')}
-      </ul>
-     
-      <h3>Candidate Strengths</h3>
-      <p>Based on the resume analysis, ${candidateName} demonstrates strengths in the following areas:</p>
-      <ul>
-        ${strengths.map(strength => `<li>${strength}</li>`).join('\n        ')}
-      </ul>
-     
-      <h3>Areas for Improvement</h3>
-      <p>To better align with ${jobTitle}, the candidate could improve in these areas:</p>
-      <ul>
-        ${improvements.map(improvement => `<li>${improvement}</li>`).join('\n        ')}
-      </ul>
-     
-      <h3>Recommendation</h3>
-      <p>${getRecommendation(scores.total)}</p>
-    `;
+    // Get criteria for required experience if available
+    let requiredExperience = 0;
+    if (resume.job) {
+      const criteria = await CriteriaSet.findOne({
+        where: { job_id: resume.job.id }
+      });
+      
+      if (criteria) {
+        requiredExperience = criteria.min_experience_years || 0;
+      }
+    }
     
-    return reportContent;
+    // Format skills for the report modal
+    const formattedSkills = [
+      ...matchingSkills.map(skill => ({ name: skill, match: true })),
+      ...missingSkills.map(skill => ({ name: skill, match: false }))
+    ];
+    
+    // Build the report data structure
+    const reportData = {
+      matchScore: Math.round(scores.total),
+      skills: formattedSkills,
+      requiredExperience: requiredExperience,
+      candidateExperience: resume.experience_years || 0,
+      experienceScore: Math.round(scores.experience),
+      improvements: improvements,
+      recommendation: getRecommendation(scores.total)
+    };
+    
+    return reportData;
   } catch (error) {
     console.error('Error generating report content:', error);
     return await generateBasicReport(resume);
@@ -175,9 +247,8 @@ const getRecommendation = (score) => {
     return 'This candidate is not a strong match for this specific position. Consider for other opportunities that better align with their skills.';
   }
 };
-// Ensure the correct implementation of the generateReportContent function
-// Add these changes to the generateBasicReport function as well to fix any potential issues there
 
+// Generate basic report in structured JSON format
 const generateBasicReport = async (resume) => {
   try {
     const candidateName = resume.candidate.name;
@@ -192,37 +263,38 @@ const generateBasicReport = async (resume) => {
       skills = [];
     }
     
-    // Parse education array
-    let education = [];
-    try {
-      education = Array.isArray(resume.education) ? resume.education : JSON.parse(resume.education || '[]');
-    } catch (error) {
-      console.error('Error parsing education:', error);
-      education = [];
-    }
+    // Format skills for the report modal
+    const formattedSkills = skills.map(skill => ({
+      name: skill,
+      match: true // Assume all skills match in the basic report
+    }));
     
-    // Format education entries
-    const formatEducation = (eduArray) => {
-      return eduArray.map(edu => {
-        if (typeof edu === 'string') return edu;
-        return `${edu.degree || 'Degree'} from ${edu.institution || 'Institution'}`;
-      }).join(', ');
+    // Create default improvements list
+    const improvements = [
+      "This is a basic report without detailed analysis",
+      "Consider evaluating against specific job criteria"
+    ];
+    
+    // Build the report data structure
+    return {
+      matchScore: 50, // Default score for basic report
+      skills: formattedSkills,
+      requiredExperience: 0,
+      candidateExperience: resume.experience_years || 0,
+      experienceScore: 50, // Default experience score
+      improvements: improvements,
+      recommendation: "This is a basic report as detailed analysis is not available."
     };
-    
-    return `
-      <h2>Basic Candidate Report</h2>
-      <p><strong>Candidate:</strong> ${candidateName}</p>
-      <p><strong>Position:</strong> ${jobTitle}</p>
-      <p><strong>Experience:</strong> ${resume.experience_years || 0} years</p>
-      <p><strong>Skills:</strong> ${skills.join(', ')}</p>
-      <p><strong>Education:</strong> ${formatEducation(education)}</p>
-      <p>This is an automatically generated basic report as detailed analysis is not available.</p>
-    `;
   } catch (error) {
     console.error('Error generating basic report:', error);
-    return `
-      <h2>Basic Candidate Report</h2>
-      <p>Error generating report: ${error.message}</p>
-    `;
+    return {
+      matchScore: 0,
+      skills: [],
+      requiredExperience: 0,
+      candidateExperience: 0,
+      experienceScore: 0,
+      improvements: ["Error generating report: " + error.message],
+      recommendation: "An error occurred during report generation."
+    };
   }
 };

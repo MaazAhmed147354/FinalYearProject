@@ -348,20 +348,6 @@ functions:
               - Content-Type
               - X-Custom-Header
             allowCredentials: true
-    
-  generateCandidateReportPDF:
-    handler: src/handlers/reportHandlerDirect.generateCandidateReportPDF
-    timeout: 60
-    events:
-      - http:
-          path: reports/candidate-pdf
-          method: post
-          cors:
-            origin: "*"
-            headers:
-              - Content-Type
-              - X-Custom-Header
-            allowCredentials: true
             
   compareCandidates:
     handler: src/handlers/reportHandler.compareCandidates
