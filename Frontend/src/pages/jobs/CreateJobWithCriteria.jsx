@@ -25,6 +25,21 @@ import JobService from "../../services/JobService";
 import CriteriaService from "../../services/CriteriaService";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import Select from "react-select";
+import { useToast } from "../../components/ui/toast";
+
+const departmentOptions = [
+  { value: "Information Technology", label: "Information Technology" },
+  { value: "Business", label: "Business" },
+  { value: "DevOps", label: "DevOps" },
+  { value: "Customer Support", label: "Customer Support" },
+  { value: "Engineering", label: "Engineering" },
+  { value: "Marketing", label: "Marketing" },
+  { value: "Quality Assurance", label: "Quality Assurance" },
+  { value: "Security", label: "Security" },
+  { value: "Sales", label: "Sales" },
+  { value: "Finance", label: "Finance" },
+];
 
 const CreateJobWithCriteria = () => {
   const navigate = useNavigate();
@@ -68,6 +83,7 @@ const CreateJobWithCriteria = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [keywordInput, setKeywordInput] = useState("");
+  const { toast } = useToast();
 
   const handleJobDataChange = (e) => {
     const { name, value } = e.target;
@@ -216,7 +232,10 @@ const CreateJobWithCriteria = () => {
       setCurrentStep(1);
       
       // Show success message
-      alert("Job and criteria created successfully!");
+      toast({
+        title: "Success",
+        description: "Job and criteria created successfully!",
+      });
       
       // Navigate to dashboard or job list
       navigate("/dashboard");
@@ -251,19 +270,22 @@ const CreateJobWithCriteria = () => {
           <label className="text-sm font-medium">Department</label>
           <div className="relative">
             <BookOpen className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-            <select
-              name="department"
-              value={jobData.department}
-              onChange={handleJobDataChange}
-              className="pl-10 w-full p-2 border rounded-md"
-              required
-            >
-              <option value="">Select Department</option>
-              <option value="engineering">Engineering</option>
-              <option value="product">Product</option>
-              <option value="design">Design</option>
-              <option value="marketing">Marketing</option>
-            </select>
+            <Select
+              options={departmentOptions}
+              value={departmentOptions.find(
+                (opt) => opt.value === jobData.department
+              )}
+              onChange={(option) =>
+                handleJobDataChange({
+                  target: { name: "department", value: option.value },
+                })
+              }
+              placeholder="Select Department"
+              menuPlacement="auto"
+              styles={{
+                menu: (provided) => ({ ...provided, maxHeight: 200 }),
+              }}
+            />
           </div>
         </div>
       </div>
