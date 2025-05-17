@@ -42,14 +42,14 @@ CREATE TABLE `criteria_skills` (
 LOCK TABLES `criteria_skills` WRITE;
 /*!40000 ALTER TABLE `criteria_skills` DISABLE KEYS */;
 
-INSERT INTO `criteria_skills` (`criteria_id`, `skill_name`, `weight`, `mandatory`)
-VALUES 
-  (1, 'JavaScript', 5, TRUE),
-  (1, 'ReactJS', 4, TRUE),
-  (2, 'Communication', 3, TRUE),
-  (2, 'Teamwork', 2, FALSE),
-  (3, 'SQL', 5, TRUE),
-  (3, 'Data Analysis', 4, TRUE);
+-- INSERT INTO `criteria_skills` (`criteria_id`, `skill_name`, `weight`, `mandatory`)
+-- VALUES 
+--   (1, 'JavaScript', 5, TRUE),
+--   (1, 'ReactJS', 4, TRUE),
+--   (2, 'Communication', 3, TRUE),
+--   (2, 'Teamwork', 2, FALSE),
+--   (3, 'SQL', 5, TRUE),
+--   (3, 'Data Analysis', 4, TRUE);
 
  /*!40000 ALTER TABLE `criteria_skills` ENABLE KEYS */;
 UNLOCK TABLES;

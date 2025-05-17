@@ -44,12 +44,12 @@ CREATE TABLE `criteria_sets` (
 LOCK TABLES `criteria_sets` WRITE;
 /*!40000 ALTER TABLE `criteria_sets` DISABLE KEYS */;
 
-INSERT INTO `criteria_sets` (`job_id`, `name`, `experience_weight`, `min_experience_years`)
-VALUES 
-  (1, 'Technical Skills', 5, 3),
-  (1, 'Soft Skills', 3, 2),
-  (2, 'Experience in Related Field', 4, 5),
-  (2, 'Certifications', 2, 0);
+-- INSERT INTO `criteria_sets` (`job_id`, `name`, `experience_weight`, `min_experience_years`)
+-- VALUES 
+--   (1, 'Technical Skills', 5, 3),
+--   (1, 'Soft Skills', 3, 2),
+--   (2, 'Experience in Related Field', 4, 5),
+--   (2, 'Certifications', 2, 0);
 
  /*!40000 ALTER TABLE `criteria_sets` ENABLE KEYS */;
 UNLOCK TABLES;

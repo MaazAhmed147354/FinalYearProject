@@ -51,22 +51,22 @@ CREATE TABLE `resumes` (
 LOCK TABLES `resumes` WRITE;
 /*!40000 ALTER TABLE `resumes` DISABLE KEYS */;
 
-INSERT INTO `resumes` 
-(`candidate_id`, `job_id`, `file_path`, `parsed_data`, `experience_years`, `skills`, `education`, `status`) 
-VALUES
-(1, 1, '/uploads/resumes/ayesha_resume.pdf', 
- '{"summary":"Experienced HR Manager with 5 years in recruitment."}', 
- 5, 
- '["Recruitment", "HRIS", "Conflict Resolution"]', 
- '["MBA in HR", "BBA"]', 
- 'shortlisted'),
+-- INSERT INTO `resumes` 
+-- (`candidate_id`, `job_id`, `file_path`, `parsed_data`, `experience_years`, `skills`, `education`, `status`) 
+-- VALUES
+-- (1, 1, '/uploads/resumes/ayesha_resume.pdf', 
+--  '{"summary":"Experienced HR Manager with 5 years in recruitment."}', 
+--  5, 
+--  '["Recruitment", "HRIS", "Conflict Resolution"]', 
+--  '["MBA in HR", "BBA"]', 
+--  'shortlisted'),
 
-(2, NULL, '/uploads/resumes/imran_resume.pdf', 
- '{"summary":"Frontend developer skilled in React and TypeScript."}', 
- 2, 
- '["React", "TypeScript", "HTML", "CSS"]', 
- '["BS in Computer Science"]', 
- 'pending');
+-- (2, NULL, '/uploads/resumes/imran_resume.pdf', 
+--  '{"summary":"Frontend developer skilled in React and TypeScript."}', 
+--  2, 
+--  '["React", "TypeScript", "HTML", "CSS"]', 
+--  '["BS in Computer Science"]', 
+--  'pending');
 
 /*!40000 ALTER TABLE `resumes` ENABLE KEYS */;
 UNLOCK TABLES;

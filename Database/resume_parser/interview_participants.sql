@@ -42,12 +42,12 @@ CREATE TABLE `interview_participants` (
 LOCK TABLES `interview_participants` WRITE;
 /*!40000 ALTER TABLE `interview_participants` DISABLE KEYS */;
 
-INSERT INTO `interview_participants` (`interview_id`, `user_id`, `role`)
-VALUES 
-  (1, 1, 'interviewer'),
-  (1, 2, 'candidate'),
-  (2, 3, 'interviewer'),
-  (2, 4, 'candidate');
+-- INSERT INTO `interview_participants` (`interview_id`, `user_id`, `role`)
+-- VALUES 
+--   (1, 1, 'interviewer'),
+--   (1, 2, 'candidate'),
+--   (2, 3, 'interviewer'),
+--   (2, 4, 'candidate');
 
  /*!40000 ALTER TABLE `interview_participants` ENABLE KEYS */;
 UNLOCK TABLES;

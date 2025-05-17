@@ -45,13 +45,13 @@ CREATE TABLE `candidates` (
 LOCK TABLES `candidates` WRITE;
 /*!40000 ALTER TABLE `candidates` DISABLE KEYS */;
 
-INSERT INTO `candidates` (`name`, `email`, `phone`, `location`, `source_email_id`)
-VALUES 
-  ('John Doe', 'john.doe@example.com', '123-456-7890', 'New York, USA', 1),
-  ('Jane Smith', 'jane.smith@example.com', '987-654-3210', 'Los Angeles, USA', 2),
-  ('Emily Johnson', 'emily.johnson@example.com', '555-123-4567', 'Chicago, USA', 3),
-  ('Michael Brown', 'michael.brown@example.com', '555-987-6543', 'San Francisco, USA', 4),
-  ('Sarah Davis', 'sarah.davis@example.com', '555-321-7654', 'Boston, USA', 5);
+-- INSERT INTO `candidates` (`name`, `email`, `phone`, `location`, `source_email_id`)
+-- VALUES 
+--   ('John Doe', 'john.doe@example.com', '123-456-7890', 'New York, USA', 1),
+--   ('Jane Smith', 'jane.smith@example.com', '987-654-3210', 'Los Angeles, USA', 2),
+--   ('Emily Johnson', 'emily.johnson@example.com', '555-123-4567', 'Chicago, USA', 3),
+--   ('Michael Brown', 'michael.brown@example.com', '555-987-6543', 'San Francisco, USA', 4),
+--   ('Sarah Davis', 'sarah.davis@example.com', '555-321-7654', 'Boston, USA', 5);
 
  /*!40000 ALTER TABLE `candidates` ENABLE KEYS */;
 UNLOCK TABLES;

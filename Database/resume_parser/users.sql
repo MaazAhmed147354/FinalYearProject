@@ -45,8 +45,8 @@ LOCK TABLES `users` WRITE;
 
 INSERT INTO `users` (`name`, `email`, `password_hash`, `role`, `department`)
 VALUES 
-  ('Ayesha Malik', 'ayesha.hr@example.com', '$2b$10$exampleHashedPassword1', 'hr', NULL),
-  ('Imran Qureshi', 'imran.dev@example.com', '$2b$10$exampleHashedPassword2', 'department', 'Engineering');
+  ('Maaz Ahmed', 'maaz.hr@gmail.com', '$2a$10$7f6oW4AIDFSpnt6bZdBfy.G/hxj8TmhwQRHtKEwZnKRaE5X6Rt4Bu', 'hr', NULL),
+  ('Muhammad Furqan', 'furqan.it@gmail.com', '$2a$10$D/VjU4y5/JrFEew79A4FxOxwUSc7NuYRhlWqMe7OXgplw6Y/ULWke', 'department', 'Information Technology');
 
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;

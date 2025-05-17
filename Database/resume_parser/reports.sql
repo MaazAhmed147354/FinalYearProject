@@ -45,10 +45,10 @@ CREATE TABLE `reports` (
 LOCK TABLES `reports` WRITE;
 /*!40000 ALTER TABLE `reports` DISABLE KEYS */;
 
-INSERT INTO `reports` (`resume_id`, `type`, `content`, `generated_by`, `sent`)
-VALUES 
-  (1, 'shortlisted', 'This resume has been shortlisted based on criteria X.', 1, 0),
-  (2, 'rejected', 'This resume does not meet the required criteria.', 2, 1);
+-- INSERT INTO `reports` (`resume_id`, `type`, `content`, `generated_by`, `sent`)
+-- VALUES 
+--   (1, 'shortlisted', 'This resume has been shortlisted based on criteria X.', 1, 0),
+--   (2, 'rejected', 'This resume does not meet the required criteria.', 2, 1);
 
  /*!40000 ALTER TABLE `reports` ENABLE KEYS */;
 UNLOCK TABLES;

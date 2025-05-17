@@ -50,10 +50,10 @@ CREATE TABLE `interviews` (
 LOCK TABLES `interviews` WRITE;
 /*!40000 ALTER TABLE `interviews` DISABLE KEYS */;
 
-INSERT INTO `interviews` (`resume_id`, `job_id`, `date`, `time`, `duration`, `status`, `location`, `meeting_link`, `notes`)
-VALUES 
-  (1, 1, '2025-05-10', '10:00:00', 60, 'pending', 'Zoom', 'https://zoom.us/meeting/1', 'Initial interview for software engineer role'),
-  (2, 2, '2025-05-12', '14:00:00', 60, 'confirmed', 'Office', NULL, 'Final interview for HR Manager position');
+-- INSERT INTO `interviews` (`resume_id`, `job_id`, `date`, `time`, `duration`, `status`, `location`, `meeting_link`, `notes`)
+-- VALUES 
+--   (1, 1, '2025-05-10', '10:00:00', 60, 'pending', 'Zoom', 'https://zoom.us/meeting/1', 'Initial interview for software engineer role'),
+--   (2, 2, '2025-05-12', '14:00:00', 60, 'confirmed', 'Office', NULL, 'Final interview for HR Manager position');
 
  /*!40000 ALTER TABLE `interviews` ENABLE KEYS */;
 UNLOCK TABLES;

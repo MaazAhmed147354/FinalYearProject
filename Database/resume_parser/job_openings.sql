@@ -49,10 +49,10 @@ CREATE TABLE `job_openings` (
 LOCK TABLES `job_openings` WRITE;
 /*!40000 ALTER TABLE `job_openings` DISABLE KEYS */;
 
-INSERT INTO `job_openings` (`title`, `description`, `department`, `required_skills`, `qualifications`, `experience`, `start_date`, `end_date`, `status`, `created_by`)
-VALUES 
-  ('Software Engineer', 'Responsible for developing software applications and systems.', 'Engineering', 'Java, React, SQL', 'Bachelor\'s degree in Computer Science or related field', '2-5 years', '2025-05-01', '2025-06-01', 'open', 1),
-  ('HR Manager', 'Oversee recruitment and employee management processes.', 'Human Resources', 'HR Management, Communication', 'Master\'s degree in Human Resources', '5+ years', '2025-05-05', '2025-06-10', 'open', 2);
+-- INSERT INTO `job_openings` (`title`, `description`, `department`, `required_skills`, `qualifications`, `experience`, `start_date`, `end_date`, `status`, `created_by`)
+-- VALUES 
+--   ('IT Consultant', 'Responsible for optimizing technology solutions by analyzing, strategizing, and implementing systems that improve efficiency, security, and innovation.', 'Information Technology', 'Cloud Computing, Network & Infrastructure, DevOps', 'Bachelors degree in Computer Science or related field', '3 years', '2025-05-01', '2025-06-01', 'open', 1),
+--   ('Business Analyst', 'Responsible for analyzing business processes, identifying areas for improvement, and developing strategies to enhance efficiency and productivity.', 'Business', 'Data Analysis, Process Optimization, Stakeholder Management', 'Masters degree in Business Administration, Finance or related field', '5 years', '2025-05-10', '2025-06-10', 'open', 1);
 
  /*!40000 ALTER TABLE `job_openings` ENABLE KEYS */;
 UNLOCK TABLES;

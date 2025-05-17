@@ -40,17 +40,17 @@ CREATE TABLE `criteria_keywords` (
 LOCK TABLES `criteria_keywords` WRITE;
 /*!40000 ALTER TABLE `criteria_keywords` DISABLE KEYS */;
 
-INSERT INTO `criteria_keywords` (`criteria_id`, `keyword`)
-VALUES 
-  (1, 'JavaScript'),
-  (1, 'React'),
-  (1, 'Node.js'),
-  (2, 'Communication'),
-  (2, 'Leadership'),
-  (3, '5+ years experience'),
-  (3, 'Project management'),
-  (4, 'PMP certification'),
-  (4, 'Agile');
+-- INSERT INTO `criteria_keywords` (`criteria_id`, `keyword`)
+-- VALUES 
+--   (1, 'JavaScript'),
+--   (1, 'React'),
+--   (1, 'Node.js'),
+--   (2, 'Communication'),
+--   (2, 'Leadership'),
+--   (3, '5+ years experience'),
+--   (3, 'Project management'),
+--   (4, 'PMP certification'),
+--   (4, 'Agile');
 
  /*!40000 ALTER TABLE `criteria_keywords` ENABLE KEYS */;
 UNLOCK TABLES;
