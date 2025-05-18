@@ -11,19 +11,19 @@ import EmailService from "../../services/EmailService";
 import JobService from "../../services/JobService";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import Select from 'react-select';
 
 const EmailIntegration = () => {
   const navigate = useNavigate();
   const [filterParams, setFilterParams] = useState({
     startDate: "",
     endDate: "",
-    subject: "",
+    jobId: "",
   });
 
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [selectedJobId, setSelectedJobId] = useState("");
   const [jobs, setJobs] = useState([]);
   const [openJobs, setOpenJobs] = useState([]);
 
@@ -57,9 +57,11 @@ const EmailIntegration = () => {
     }
   };
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilterParams(prev => ({ ...prev, [name]: value }));
+  const handleFilterChange = (selectedOption, { name }) => {
+    setFilterParams(prev => ({
+      ...prev,
+      [name]: selectedOption ? selectedOption.value : "",
+    }));
   };
 
   const handleDateFilter = async () => {
@@ -68,7 +70,7 @@ const EmailIntegration = () => {
       const response = await EmailService.listEmails({
         start_date: filterParams.startDate,
         end_date: filterParams.endDate,
-        search: filterParams.subject
+        job_id: filterParams.jobId,
       });
       setEmails(response.data.data || []);
     } catch (error) {
@@ -81,7 +83,7 @@ const EmailIntegration = () => {
   const handleSyncEmails = async () => {
     try {
       setSyncing(true);
-      const response = await EmailService.syncEmails();
+      await EmailService.syncEmails();
       toast.success("Emails synchronized successfully!");
       fetchEmails(); // Refresh the email list
     } catch (error) {
@@ -98,29 +100,6 @@ const EmailIntegration = () => {
     } catch (error) {
       toast.error("Failed to download resume: " + error.message);
     }
-  };
-
-  const handleExtractResume = async (emailId) => {
-    if (!selectedJobId) {
-      toast.error("Please select a job first");
-      return;
-    }
-
-    try {
-      const response = await EmailService.extractResumeFromEmail(emailId, selectedJobId);
-      toast.success("Resume extracted successfully!");
-      fetchEmails(); // Refresh to update status
-    } catch (error) {
-      toast.error("Failed to extract resume: " + error.message);
-    }
-  };
-
-  const handleJobSelection = (jobId) => {
-    setSelectedJobId(jobId);
-    
-    // We're removing the navigation to Resume Management page
-    // as this will be handled by the ManageResumes component directly
-    console.log("Selected job ID:", jobId);
   };
 
   const handleUpdateStatus = async (emailId, status) => {
@@ -140,22 +119,10 @@ const EmailIntegration = () => {
           <div className="flex justify-between items-center">
             <CardTitle>Email Integration</CardTitle>
             <div className="flex gap-4">
-              <select
-                className="border rounded-md p-2"
-                value={selectedJobId}
-                onChange={(e) => handleJobSelection(e.target.value)}
-              >
-                <option value="">Select Job for Extraction</option>
-                {openJobs.map((job) => (
-                  <option key={job.id} value={job.id}>
-                    {job.title}
-                  </option>
-                ))}
-              </select>
               <Button 
                 onClick={handleSyncEmails} 
                 disabled={syncing}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 hover:bg-gray-200 p-2"
               >
                 <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
                 {syncing ? 'Syncing...' : 'Sync Emails'}
@@ -165,7 +132,7 @@ const EmailIntegration = () => {
         </CardHeader>
         <CardContent>
           {/* Filter Section */}
-          <div className="flex gap-4 mb-6">
+          <div className="flex gap-4 mb-6 items-end">
             <div className="space-y-2">
               <label className="text-sm font-medium">Start Date</label>
               <div className="relative">
@@ -192,21 +159,20 @@ const EmailIntegration = () => {
                 />
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email Subject</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  name="subject"
-                  value={filterParams.subject}
-                  onChange={handleFilterChange}
-                  className="pl-10 p-2 border rounded-md"
-                  placeholder="Filter by subject keywords"
-                />
-              </div>
+            {/* New Job Filter Dropdown */}
+            <div className="space-y-2" style={{ minWidth: '200px' }}> {/* Added minWidth for better spacing */}
+              <label className="text-sm font-medium">Filter by Job</label>
+              <Select
+                name="jobId"
+                value={jobs.map(job => ({ value: job.id, label: job.title })).find(option => option.value === filterParams.jobId) || null}
+                onChange={handleFilterChange}
+                options={[{ value: "", label: "All Jobs" }, ...jobs.map(job => ({ value: job.id, label: job.title }))]}
+                classNamePrefix="react-select"
+                placeholder="Select Job"
+                isClearable={true}
+              />
             </div>
-            <Button onClick={handleDateFilter} variant="outline" disabled={loading}>
+            <Button onClick={handleDateFilter} variant="outline" disabled={loading} className="hover:bg-gray-200 px-4 py-1">
               <Filter className="w-4 h-4 mr-2" />
               {loading ? 'Filtering...' : 'Filter Emails'}
             </Button>
@@ -275,17 +241,6 @@ const EmailIntegration = () => {
                             >
                               <Download className="w-4 h-4" />
                             </Button>
-                            {email.status === 'pending' && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleExtractResume(email.id)}
-                                title="Extract and Download Processed Resume"
-                                disabled={!selectedJobId}
-                              >
-                                <Eye className="w-4 h-4" />
-                              </Button>
-                            )}
                           </>
                         )}
                         <Button

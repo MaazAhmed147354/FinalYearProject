@@ -156,10 +156,29 @@ exports.syncEmails = async (config) => {
     // Close connection
     connection.end();
 
+    // --- Automatic association logic ---
+    // Fetch all jobs
+    const jobs = await Job.findAll();
+    for (const email of emails) {
+      if (!email.job_id) {
+        const match = jobs.find(
+          (job) =>
+            (job.title || "").trim().toLowerCase() ===
+            (email.subject || "").trim().toLowerCase()
+        );
+        if (match) {
+          await email.update({ job_id: match.id });
+        } else {
+          await email.update({ status: "spam" });
+        }
+      }
+    }
+
+    // Return updated emails
     return {
       success: true,
       emails_synced: emails.length,
-      emails: emails,
+      emails: await Email.findAll({ where: { id: emails.map((e) => e.id) } }),
     };
   } catch (error) {
     throw error;
@@ -298,19 +317,19 @@ exports.extractResumeFromEmail = async (emailId, jobId) => {
 
     // First parse the resume to get the actual candidate name
     const parsedData = await resumeService.parseResume(resumePath);
-    
+
     // Extract name from the parsed data
     let candidateName = "Unknown";
     let candidateEmail = email.sender;
-    
+
     // Try to extract name from summary (which usually contains the candidate's name)
     if (parsedData && parsedData.summary) {
-      const firstLine = parsedData.summary.split('\n')[0].trim();
+      const firstLine = parsedData.summary.split("\n")[0].trim();
       if (firstLine && firstLine.length > 0) {
         candidateName = firstLine;
       }
     }
-    
+
     // Extract email from sender or parsed data
     const nameMatch = email.sender.match(/^"?([^"<]+)"?\s*<?([^>]+)>?$/);
     if (nameMatch && nameMatch[2]) {
@@ -455,14 +474,14 @@ exports.getEmailDetails = async (id) => {
       include: [
         {
           model: Job,
-          as: 'job',
-          attributes: ['id', 'title', 'department', 'status'],
+          as: "job",
+          attributes: ["id", "title", "department", "status"],
         },
       ],
     });
 
     if (!email) {
-      throw new Error('Email not found');
+      throw new Error("Email not found");
     }
 
     return email;
