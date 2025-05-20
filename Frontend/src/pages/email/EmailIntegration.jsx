@@ -64,6 +64,14 @@ const EmailIntegration = () => {
     }));
   };
 
+  const handleDateChange = (e) => {
+    const { name, value } = e.target;
+    setFilterParams(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleDateFilter = async () => {
     try {
       setLoading(true);
@@ -141,7 +149,7 @@ const EmailIntegration = () => {
                   type="date"
                   name="startDate"
                   value={filterParams.startDate}
-                  onChange={handleFilterChange}
+                  onChange={handleDateChange}
                   className="pl-10 p-2 border rounded-md"
                 />
               </div>
@@ -154,7 +162,7 @@ const EmailIntegration = () => {
                   type="date"
                   name="endDate"
                   value={filterParams.endDate}
-                  onChange={handleFilterChange}
+                  onChange={handleDateChange}
                   className="pl-10 p-2 border rounded-md"
                 />
               </div>

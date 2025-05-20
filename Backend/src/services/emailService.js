@@ -190,7 +190,7 @@ exports.syncEmails = async (config) => {
  * @param {Object} filters - Filter criteria
  * @returns {Promise<Array>} List of emails
  */
-exports.listEmails = async (filters = {}) => {
+exports.listEmails = async (filters) => {
   try {
     // Build where clause from filters
     const whereClause = {};
@@ -209,15 +209,15 @@ exports.listEmails = async (filters = {}) => {
 
     if (filters.start_date && filters.end_date) {
       whereClause.received_date = {
-        [Op.between]: [filters.start_date, filters.end_date],
+        [Op.between]: [new Date(filters.start_date), new Date(filters.end_date)],
       };
     } else if (filters.start_date) {
       whereClause.received_date = {
-        [Op.gte]: filters.start_date,
+        [Op.gte]: new Date(filters.start_date),
       };
     } else if (filters.end_date) {
       whereClause.received_date = {
-        [Op.lte]: filters.end_date,
+        [Op.lte]: new Date(filters.end_date),
       };
     }
 

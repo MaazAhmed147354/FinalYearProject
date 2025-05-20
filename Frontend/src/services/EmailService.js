@@ -13,6 +13,7 @@ class EmailService {
     const queryParams = new URLSearchParams();
     if (filters.start_date) queryParams.append('start_date', filters.start_date);
     if (filters.end_date) queryParams.append('end_date', filters.end_date);
+    if (filters.job_id) queryParams.append('job_id', filters.job_id);
     if (filters.search) queryParams.append('search', filters.search);
     if (filters.status) queryParams.append('status', filters.status);
 
