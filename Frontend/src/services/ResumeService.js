@@ -30,8 +30,8 @@ class ResumeService {
 
   async updateResumeStatus(id, status) {
     return axios.put(
-      BASE_API_URL + `/resumes/${id}/status`,
-      { status: status },
+      BASE_API_URL + `/resumes/status`,
+      { id: id, status: status },
       {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },

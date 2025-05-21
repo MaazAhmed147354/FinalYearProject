@@ -117,12 +117,12 @@ class EmailService {
     }
   }
 
-  async extractResumeFromEmail(email_id, job_id) {
+  async extractResumesFromJob(job_id) {
     try {
       // Extract and process the resume
       const response = await axios.post(
         `${BASE_API_URL}/emails/extract-resume`,
-        { email_id, job_id },
+        { job_id },
         {
           withCredentials: true,
           headers: { "Content-Type": "application/json" },

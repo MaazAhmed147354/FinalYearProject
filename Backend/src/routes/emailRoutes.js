@@ -17,12 +17,12 @@ exports.listEmails = async (event) => {
   return await emailController.listEmails(event);
 };
 
-// Extract resume from email
-exports.extractResumeFromEmail = async (event) => {
+// Extract resume from Job
+exports.extractResumesFromJob = async (event) => {
   const authResult = await auth.authorizeToken(event, ["hr"]);
   if (authResult.statusCode !== 202) return authResult;
 
-  return await emailController.extractResumeFromEmail(event);
+  return await emailController.extractResumesFromJob(event);
 };
 
 // Send email to candidate

@@ -21,9 +21,18 @@ import {
 import React, { useState, useEffect } from "react";
 import ReportService from "../../services/ReportService";
 import ResumeService from "../../services/ResumeService";
+import JobService from "../../services/JobService";
+import Select from "react-select";
+import EmailService from "../../services/EmailService";
 
 // Report Generation Modal
-const ReportModal = ({ isOpen, onClose, candidateName, reportData, isLoading }) => {
+const ReportModal = ({
+  isOpen,
+  onClose,
+  candidateName,
+  reportData,
+  isLoading,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -48,7 +57,7 @@ const ReportModal = ({ isOpen, onClose, candidateName, reportData, isLoading }) 
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : reportData ? (
-          <div className="space-y-4">
+          <div className="space-y-4" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
             <div>
               <h3 className="font-semibold text-lg">Match Score Analysis</h3>
               <div className="mt-2 p-4 bg-gray-50 rounded-lg">
@@ -91,7 +100,9 @@ const ReportModal = ({ isOpen, onClose, candidateName, reportData, isLoading }) 
                   </p>
                   <div className="flex justify-between mb-1 mt-2">
                     <span className="text-sm">Experience Match</span>
-                    <span className="text-sm">{reportData.experienceScore}%</span>
+                    <span className="text-sm">
+                      {reportData.experienceScore}%
+                    </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
@@ -115,7 +126,9 @@ const ReportModal = ({ isOpen, onClose, candidateName, reportData, isLoading }) 
             {reportData.recommendation && (
               <div>
                 <h3 className="font-semibold text-lg">Recommendation</h3>
-                <p className="text-sm text-gray-600">{reportData.recommendation}</p>
+                <p className="text-sm text-gray-600">
+                  {reportData.recommendation}
+                </p>
               </div>
             )}
 
@@ -149,13 +162,28 @@ const ManageResumes = () => {
     isOpen: false,
     candidateName: "",
     reportData: null,
-    isLoading: false
+    isLoading: false,
   });
+
+  const [jobs, setJobs] = useState([]);
+  const [selectedJob, setSelectedJob] = useState(null);
 
   // Fetch resumes when component mounts
   useEffect(() => {
     fetchResumes();
+    fetchJobs();
   }, []);
+
+  const fetchJobs = async () => {
+    try {
+      const response = await JobService.listJobs();
+      if (response.data && response.data.data) {
+        setJobs(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch jobs:", error);
+    }
+  };
 
   const fetchResumes = async () => {
     try {
@@ -176,7 +204,7 @@ const ManageResumes = () => {
       isOpen: true,
       candidateName,
       reportData: null,
-      isLoading: true
+      isLoading: true,
     });
 
     try {
@@ -185,21 +213,21 @@ const ManageResumes = () => {
       const userId = 1; // Replace with actual user ID retrieval
 
       const response = await ReportService.generateCandidateReport(resumeId);
-      
+
       // The API returns the report with the content field containing the JSON report data
       const reportData = response.data.data.content;
-      
-      setReportModal(prev => ({
+
+      setReportModal((prev) => ({
         ...prev,
         reportData,
-        isLoading: false
+        isLoading: false,
       }));
     } catch (error) {
       console.error("Error generating report:", error);
-      setReportModal(prev => ({
+      setReportModal((prev) => ({
         ...prev,
         reportData: null,
-        isLoading: false
+        isLoading: false,
       }));
     }
   };
@@ -209,13 +237,55 @@ const ManageResumes = () => {
       isOpen: false,
       candidateName: "",
       reportData: null,
-      isLoading: false
+      isLoading: false,
     });
   };
 
+  const handleExtractResumes = async () => {
+    if (!selectedJob) {
+      alert("Please select a job title first.");
+      return;
+    }
+
+    const jobId = selectedJob.value;
+
+    try {
+      // Call the new backend endpoint to trigger the process
+      await EmailService.extractResumesFromJob(jobId); // Ensure this function exists in EmailService
+
+      // Assuming a service method exists to fetch resume IDs by job ID
+      const resumeResponse = await ResumeService.getResumeIdsByJobId(jobId);
+      const resumeIds = resumeResponse.data.data.map((resume) => resume.id);
+
+      // Generate Report for each resume ID
+      const userId = 1; // Default user_id as specified
+      for (const resumeId of resumeIds) {
+        try {
+          await ReportService.generateCandidateReport(resumeId, userId);
+          console.log(
+            `Successfully generated report for resume ID: ${resumeId}`
+          );
+        } catch (error) {
+          console.error(
+            `Failed to generate report for resume ID: ${resumeId}`,
+            error
+          );
+        }
+      }
+
+      alert("Resume extraction and report generation process initiated.");
+    } catch (error) {
+      console.error("Error during extraction:", error);
+      alert("An error occurred during the extraction process.");
+    }
+  };
+
   // Apply filters to resumes
-  const filteredResumes = resumes.filter(resume => {
-    if (filterCriteria.status !== "all" && resume.status !== filterCriteria.status) {
+  const filteredResumes = resumes.filter((resume) => {
+    if (
+      filterCriteria.status !== "all" &&
+      resume.status !== filterCriteria.status
+    ) {
       return false;
     }
     if (resume.matchScore < filterCriteria.minScore) {
@@ -315,7 +385,28 @@ const ManageResumes = () => {
         <div className="col-span-3">
           <Card>
             <CardHeader>
-              <CardTitle>Resume Management</CardTitle>
+              <div className="flex justify-between items-center">
+                <CardTitle>Resume Management</CardTitle>
+                <div className="flex gap-4 items-center">
+                  <div style={{ minWidth: "200px" }}>
+                    <Select
+                      options={jobs.map((job) => ({
+                        value: job.id,
+                        label: job.title,
+                      }))}
+                      onChange={setSelectedJob}
+                      placeholder="Select Job Title"
+                      isClearable={true}
+                    />
+                  </div>
+                  <Button 
+                    onClick={handleExtractResumes}
+                    className="transition-colors duration-200 bg-blue-600 text-white hover:bg-blue-700 hover:text-whit p-2"
+                  >
+                    Extract Resumes
+                  </Button>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -334,7 +425,9 @@ const ManageResumes = () => {
                           <h3 className="text-lg font-semibold">
                             {resume.candidate?.name || "Unknown Candidate"}
                           </h3>
-                          <p className="text-sm text-gray-500">{resume.candidate?.email || "No email"}</p>
+                          <p className="text-sm text-gray-500">
+                            {resume.candidate?.email || "No email"}
+                          </p>
                         </div>
                         <div className="flex items-center space-x-2">
                           <span
@@ -358,21 +451,13 @@ const ManageResumes = () => {
 
                       <div className="mt-4">
                         <p className="text-sm">
-                          <strong>Applied for:</strong> {resume.job?.title || "Not specified"}
+                          <strong>Applied for:</strong>{" "}
+                          {resume.job?.title || "Not specified"}
                         </p>
                         <p className="text-sm">
-                          <strong>Experience:</strong> {resume.experience_years || 0} years
+                          <strong>Experience:</strong>{" "}
+                          {resume.experience_years || 0} years
                         </p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {Array.isArray(resume.skills) && resume.skills.slice(0, 5).map((skill, index) => (
-                            <span
-                              key={index}
-                              className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                        </div>
                       </div>
 
                       <div className="mt-4 flex justify-end space-x-2">
@@ -388,12 +473,30 @@ const ManageResumes = () => {
                           variant="outline"
                           size="sm"
                           className="text-blue-600 hover:text-blue-400"
-                          onClick={() =>
-                            generateReport(
-                              resume.id,
-                              resume.candidate?.name || "Candidate"
-                            )
-                          }
+                          onClick={async () => {
+                            setReportModal({
+                              isOpen: true,
+                              candidateName: resume.candidate?.name || "Candidate",
+                              reportData: null,
+                              isLoading: true,
+                            });
+                            try {
+                              const response = await ReportService.generateCandidateReport(resume.id, 1);
+                              const reportData = response.data.data.content;
+                              setReportModal((prev) => ({
+                                ...prev,
+                                reportData,
+                                isLoading: false,
+                              }));
+                            } catch (error) {
+                              setReportModal((prev) => ({
+                                ...prev,
+                                reportData: null,
+                                isLoading: false,
+                              }));
+                              alert("Failed to generate report");
+                            }
+                          }}
                         >
                           <ClipboardList className="w-4 h-4 mr-1" />
                           Generate Report
@@ -402,6 +505,24 @@ const ManageResumes = () => {
                           variant="outline"
                           size="sm"
                           className="text-green-600 hover:text-green-400"
+                          onClick={async () => {
+                            try {
+                              await ResumeService.updateResumeStatus(
+                                resume.id,
+                                "shortlisted"
+                              );
+                              setResumes((prev) =>
+                                prev.map((r) =>
+                                  r.id === resume.id
+                                    ? { ...r, status: "shortlisted" }
+                                    : r
+                                )
+                              );
+                            } catch (err) {
+                              alert("Failed to shortlist resume");
+                            }
+                          }}
+                          disabled={resume.status === 'rejected'}
                         >
                           <CheckCircle className="w-4 h-4 mr-1" />
                           Shortlist
@@ -410,6 +531,24 @@ const ManageResumes = () => {
                           variant="outline"
                           size="sm"
                           className="text-red-600 hover:text-red-400"
+                          onClick={async () => {
+                            try {
+                              await ResumeService.updateResumeStatus(
+                                resume.id,
+                                "rejected"
+                              );
+                              setResumes((prev) =>
+                                prev.map((r) =>
+                                  r.id === resume.id
+                                    ? { ...r, status: "rejected" }
+                                    : r
+                                )
+                              );
+                            } catch (err) {
+                              alert("Failed to reject resume");
+                            }
+                          }}
+                          disabled={resume.status === 'rejected'}
                         >
                           <XCircle className="w-4 h-4 mr-1" />
                           Reject

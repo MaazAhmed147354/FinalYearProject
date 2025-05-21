@@ -25,6 +25,7 @@ functions:
             origin: 'http://localhost:3000'
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
   
   # Auth Functions
@@ -36,9 +37,12 @@ functions:
           path: auth/login
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -50,9 +54,12 @@ functions:
           path: auth/register
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -64,9 +71,12 @@ functions:
           path: auth/logout
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -79,9 +89,12 @@ functions:
           path: dashboard/stats
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -93,9 +106,12 @@ functions:
           path: dashboard/import-jobs
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -108,9 +124,12 @@ functions:
           path: jobs/create
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -122,9 +141,12 @@ functions:
           path: jobs/list
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -136,9 +158,12 @@ functions:
           path: jobs/{id}
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -150,9 +175,12 @@ functions:
           path: jobs/{id}
           method: put
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -164,11 +192,21 @@ functions:
           path: jobs/{id}
           method: delete
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
+
+  closeExpiredJobs:
+    handler: src/handlers/jobHandler.closeExpiredJobs
+    events:
+      - schedule:
+          rate: cron(0 1 * * ? *) # Every day at 1:00 AM UTC
+          enabled: true
 
   closeJob:
     handler: src/handlers/jobHandler.closeJob
@@ -178,9 +216,12 @@ functions:
           path: jobs/{id}/close
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -192,9 +233,12 @@ functions:
           path: jobs/{id}/reopen
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
   
@@ -207,9 +251,12 @@ functions:
           path: ai/process-resume
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
             
@@ -221,9 +268,12 @@ functions:
           path: ai/process-batch
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
   
@@ -236,9 +286,12 @@ functions:
           path: resumes/upload
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -250,9 +303,12 @@ functions:
           path: resumes/list
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -264,9 +320,12 @@ functions:
           path: resumes/{id}
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -275,12 +334,15 @@ functions:
     timeout: 30
     events:
       - http:
-          path: resumes/{id}/status
+          path: resumes/status
           method: put
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -292,9 +354,12 @@ functions:
           path: resumes/associate
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -306,9 +371,12 @@ functions:
           path: jobs/{jobId}/top-resumes
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -321,9 +389,12 @@ functions:
           path: resumes/{id}/download
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - Content-Disposition
               - Content-Length
             allowCredentials: true
@@ -343,9 +414,12 @@ functions:
           path: reports/candidate
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
             
@@ -357,9 +431,12 @@ functions:
           path: reports/compare
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -371,9 +448,12 @@ functions:
           path: resumes/{resume_id}/reports
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -385,9 +465,12 @@ functions:
           path: reports/{report_id}
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -399,9 +482,12 @@ functions:
           path: reports/{report_id}/mark-sent
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -414,9 +500,12 @@ functions:
           path: interviews/schedule
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -428,9 +517,12 @@ functions:
           path: interviews/list
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -442,9 +534,12 @@ functions:
           path: interviews/{id}
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -456,9 +551,12 @@ functions:
           path: interviews/{id}
           method: put
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -470,9 +568,12 @@ functions:
           path: interviews/{id}/cancel
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -484,9 +585,12 @@ functions:
           path: interviews/{id}/complete
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -498,9 +602,12 @@ functions:
           path: interviews/available-slots
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -513,9 +620,12 @@ functions:
           path: emails/sync
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -527,9 +637,12 @@ functions:
           path: emails/list
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -541,9 +654,12 @@ functions:
           path: emails/{id}
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -556,9 +672,12 @@ functions:
           path: emails/{id}/attachments/download
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - Content-Disposition
               - Content-Length
             allowCredentials: true
@@ -569,19 +688,23 @@ functions:
               Content-Disposition: "'${integration.response.body.headers['Content-Disposition']}'"
               Content-Length: "'${integration.response.body.headers['Content-Length']}'"
 
-  extractResumeFromEmail:
-    handler: src/handlers/emailHandler.extractResumeFromEmail
+  extractResumesFromJob:
+    handler: src/handlers/emailHandler.extractResumesFromJob
     timeout: 300  # Increased to 5 minutes
     events:
       - http:
           path: emails/extract-resume
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
+  
   sendEmail:
     handler: src/handlers/emailHandler.sendEmail
     timeout: 30
@@ -590,9 +713,12 @@ functions:
           path: emails/send
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -604,9 +730,12 @@ functions:
           path: emails/associate
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -618,9 +747,12 @@ functions:
           path: emails/status
           method: put
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -633,9 +765,12 @@ functions:
           path: criteria/create
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -647,9 +782,12 @@ functions:
           path: jobs/{job_id}/criteria
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -661,9 +799,12 @@ functions:
           path: criteria/apply
           method: post
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -676,9 +817,12 @@ functions:
           path: analytics/jobs
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -690,9 +834,12 @@ functions:
           path: analytics/resumes
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -704,9 +851,12 @@ functions:
           path: analytics/interviews
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -718,9 +868,12 @@ functions:
           path: analytics/funnel
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 
@@ -740,9 +893,12 @@ functions:
           path: jobs/{jobId}/resumes
           method: get
           cors:
-            origin: "http://localhost:3000"
+            origin:
+              - "http://localhost:3000"  # Keep for local dev
+              - "https://final-year-project-one-pink.vercel.app"  # Add your Vercel URL
             headers:
               - Content-Type
+              - Authorization
               - X-Custom-Header
             allowCredentials: true
 

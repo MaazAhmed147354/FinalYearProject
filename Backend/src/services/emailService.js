@@ -209,7 +209,10 @@ exports.listEmails = async (filters) => {
 
     if (filters.start_date && filters.end_date) {
       whereClause.received_date = {
-        [Op.between]: [new Date(filters.start_date), new Date(filters.end_date)],
+        [Op.between]: [
+          new Date(filters.start_date),
+          new Date(filters.end_date),
+        ],
       };
     } else if (filters.start_date) {
       whereClause.received_date = {
@@ -254,7 +257,7 @@ exports.listEmails = async (filters) => {
  * @param {number} jobId - Job ID to associate with the resume
  * @returns {Promise<Object>} Extracted resume data
  */
-exports.extractResumeFromEmail = async (emailId, jobId) => {
+const extractResumeFromEmail = async (emailId, jobId) => {
   try {
     console.log(
       `Starting extract resume for emailId: ${emailId}, jobId: ${jobId}`
@@ -322,16 +325,15 @@ exports.extractResumeFromEmail = async (emailId, jobId) => {
     let candidateName = "Unknown";
     let candidateEmail = email.sender;
 
-    // Try to extract name from summary (which usually contains the candidate's name)
-    if (parsedData && parsedData.summary) {
-      const firstLine = parsedData.summary.split("\n")[0].trim();
-      if (firstLine && firstLine.length > 0) {
-        candidateName = firstLine;
-      }
+    // Extract email from sender or parsed data
+    let nameMatch = email.sender.match(/^"?([^"<]+)"?\s*<?([^>]+)>?$/);
+    if (nameMatch && nameMatch[1]) {
+      candidateName = nameMatch[1].trim(); // Extract the name before the '<'
+    } else {
+      candidateName = "Unknown"; // Fallback if no name is found
     }
 
-    // Extract email from sender or parsed data
-    const nameMatch = email.sender.match(/^"?([^"<]+)"?\s*<?([^>]+)>?$/);
+    // Extract email from the match
     if (nameMatch && nameMatch[2]) {
       candidateEmail = nameMatch[2].trim();
     }
@@ -487,5 +489,37 @@ exports.getEmailDetails = async (id) => {
     return email;
   } catch (error) {
     throw error;
+  }
+};
+
+exports.extractResumesFromJob = async (jobId) => {
+  try {
+    console.log(`Starting resume extraction for job ID: ${jobId}`);
+
+    // Fetch emails associated with the job ID and status 'pending'
+    const emails = await Email.findAll({ where: { job_id: jobId, status: 'pending' } });
+    console.log(`Found ${emails.length} pending emails for job ID ${jobId}`);
+
+    // Loop through each email and extract resumes
+    for (const email of emails) {
+      if (email.has_resume) {
+        try {
+          await extractResumeFromEmail(email.id, email.job_id);
+          console.log(
+            `Successfully extracted resume for email ID: ${email.id}`
+          );
+        } catch (error) {
+          console.error(
+            `Failed to extract resume for email ID: ${email.id}`,
+            error
+          );
+        }
+      }
+    }
+
+    console.log(`Completed resume extraction for job ID: ${jobId}`);
+  } catch (error) {
+    console.error(`Error during resume extraction for job ID ${jobId}:`, error);
+    throw error; // Re-throw to be handled by the controller
   }
 };

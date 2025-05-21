@@ -46,43 +46,6 @@ exports.listEmails = async (event) => {
 };
 
 /**
- * Extract resume from email attachment
- */
-exports.extractResumeFromEmail = async (event) => {
-  try {
-    const { email_id, job_id } = JSON.parse(event.body);
-
-    if (!email_id || !job_id) {
-      return responseHelper.validationErrorResponse({
-        email_id: "Email ID is required",
-        job_id: "Job ID is required",
-      });
-    }
-
-    const resume = await emailService.extractResumeFromEmail(email_id, job_id);
-    return responseHelper.successResponse(
-      200,
-      "Resume extracted successfully",
-      resume
-    );
-  } catch (error) {
-    console.error("Error in extractResumeFromEmail:", error);
-
-    if (error.message.includes("not found")) {
-      return responseHelper.notFoundResponse(
-        error.message.includes("Email") ? "Email" : "Job"
-      );
-    }
-
-    return responseHelper.errorResponse(
-      500,
-      "Failed to extract resume",
-      error.message
-    );
-  }
-};
-
-/**
  * Send email to a candidate
  */
 exports.sendEmail = async (event) => {
@@ -262,6 +225,34 @@ exports.downloadEmailAttachment = async (event) => {
     return responseHelper.errorResponse(
       500,
       "Failed to download attachment",
+      error.message
+    );
+  }
+};
+
+/**
+ * Extract resumes from all emails associated with a given job ID
+ */
+exports.extractResumesFromJob = async (event) => {
+  try {
+    const { job_id } = JSON.parse(event.body);
+
+    if (!job_id) {
+      return responseHelper.validationErrorResponse({
+        job_id: "Job ID is required",
+      });
+    }
+
+    await emailService.extractResumesFromJob(job_id);
+    return responseHelper.successResponse(
+      200,
+      "Resumes extraction process initiated successfully"
+    );
+  } catch (error) {
+    console.error("Error in extractResumesFromJob:", error);
+    return responseHelper.errorResponse(
+      500,
+      "Failed to initiate resume extraction",
       error.message
     );
   }

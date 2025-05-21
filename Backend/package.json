@@ -23,6 +23,7 @@
     "lodash": "^4.17.21",
     "mailparser": "^3.7.2",
     "mysql2": "^3.12.0",
+    "node-cron": "^4.0.6",
     "nodemailer": "^7.0.3",
     "puppeteer": "^24.8.2",
     "sequelize": "^6.37.5"
